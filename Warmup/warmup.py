@@ -1,3 +1,3 @@
 import utils
 
-print utils.importWarmupData()
+data = utils.importWarmupData()
