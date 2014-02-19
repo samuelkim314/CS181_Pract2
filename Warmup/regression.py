@@ -7,8 +7,23 @@ def basisPoly(x, M):
     """
     ms = np.arange(M)
 
-    if type(x) is int:
+    if type(x) is float:
         return np.power(x, ms)
+    else:
+        return np.power(x[:, np.newaxis], ms[np.newaxis, :])
+
+def basisFourier(x, M):
+    Mcos = math.trunc((M - 1) / 2)
+    Msin = M - 1 - Mcos
+    msCos = np.arange(Mcos)
+    msSin = np.arange(Msin)
+
+    period = np.amax(x) - np.amin(x)
+
+    if type(x) is float:
+        sinSub = numpy.sin(x * msSin * 2 * np.pi / period)
+        cosSub = numpy.cos(x * msSin * 2 * np.pi / period)
+        return np.concatenate((np.array([1]), sinSub, cosSub), axis=0)
     else:
         return np.power(x[:, np.newaxis], ms[np.newaxis, :])
 
@@ -25,7 +40,7 @@ def solveW(x, t, basis, M):
     Return:
         w:    array of parameters for the basis functions"""
     #design matrix given by phi_nj = phi_j(x_n)
-    phiMat = basisPoly(x, M)
+    phiMat = basis(x, M)
 
     #calculates the Moore-Penrose pseudo-inverse of the matrix phi
     phiTphi = np.dot(np.transpose(phiMat), phiMat)
