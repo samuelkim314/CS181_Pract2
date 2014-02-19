@@ -2,6 +2,7 @@ import csv
 import sys
 import itertools
 import numpy as np
+import matplotlib.pyplot as plt
 
 def importWarmupData(filename="motorcycle.csv"):
     """Imports the motorcycle data from the csv file
@@ -25,3 +26,24 @@ def importTestData(n=5):
     force = np.power(time, 2)
 
     return {"time": np.array(time), "force": np.array(force)}
+
+def plotRegression(x, t, w, basis):
+    #setting up axis limits
+    #TODO: allow input axis limits
+    rangeX = np.amax(x) - np.amin(x)
+    minX = np.amin(x) - rangeX / 10.0
+    maxX = np.amax(x) + rangeX / 10.0
+    rangeY = np.amax(t) - np.amin(t)
+    minT = np.amin(t) - rangeT / 10.0
+    maxT = np.amax(t) + rangeT / 10.0
+
+    #plot the data
+    plt.plot(x, t, 'ro')
+    plt.axis([minX, maxX, minT, maxT])
+
+    #plot the predicted curve
+    sampX = np.linspace(minX, maxX, 50)
+    phiMat = basis(x, len(w))
+    plt.plot(sampX, np.dot(phiMat, w))
+
+    plt.show()
