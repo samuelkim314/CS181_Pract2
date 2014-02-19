@@ -45,7 +45,6 @@ def plotRegression(x, t, w, basis):
     sampX = np.linspace(minX, maxX, 50)
     phiMat = basis(sampX, len(w))
     sampT = np.dot(phiMat, w)
-    print sampX.size, sampT.size
     plt.plot(sampX, np.dot(phiMat, w))
 
     plt.show()
