@@ -20,12 +20,15 @@ def basisFourier(x, M):
 
     period = np.amax(x) - np.amin(x)
 
-    if type(x) is float:
-        sinSub = numpy.sin(x * msSin * 2 * np.pi / period)
-        cosSub = numpy.cos(x * msSin * 2 * np.pi / period)
+    """if type(x) is float:
+        sinSub = np.sin(x * msSin * 2 * np.pi / period)
+        cosSub = np.cos(x * msCos * 2 * np.pi / period)
         return np.concatenate((np.array([1]), sinSub, cosSub), axis=0)
-    else:
-        return np.power(x[:, np.newaxis], ms[np.newaxis, :])
+    else:"""
+    ones = np.ones((len(x), 1))
+    sinSub = np.sin(np.outer(x, msSin) * 2 * np.pi / period)
+    cosSub = np.cos(np.outer(x, msCos) * 2 * np.pi / period)
+    return np.concatenate((ones, sinSub, cosSub), axis=0)
 
 def errorFun(x, t, w, basis):
     return 0.5*np.sum((t - np.dot(w, basis(x)))**2)
