@@ -34,8 +34,8 @@ def plotRegression(x, t, w, basis):
     minX = np.amin(x) - rangeX / 10.0
     maxX = np.amax(x) + rangeX / 10.0
     rangeY = np.amax(t) - np.amin(t)
-    minT = np.amin(t) - rangeT / 10.0
-    maxT = np.amax(t) + rangeT / 10.0
+    minT = np.amin(t) - rangeY / 10.0
+    maxT = np.amax(t) + rangeY / 10.0
 
     #plot the data
     plt.plot(x, t, 'ro')
@@ -43,7 +43,9 @@ def plotRegression(x, t, w, basis):
 
     #plot the predicted curve
     sampX = np.linspace(minX, maxX, 50)
-    phiMat = basis(x, len(w))
+    phiMat = basis(sampX, len(w))
+    sampT = np.dot(phiMat, w)
+    print sampX.size, sampT.size
     plt.plot(sampX, np.dot(phiMat, w))
 
     plt.show()

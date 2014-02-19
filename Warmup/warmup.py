@@ -4,4 +4,10 @@ import regression
 data = utils.importWarmupData()
 #data = utils.importTestData()
 
-print regression.solveW(data['time'], data['force'], regression.basisPoly, 10)
+x = data['time']
+t = data['force']
+basis = regression.basisPoly
+
+w = regression.solveW(x, t, basis, 10)
+
+utils.plotRegression(x, t, w, basis)
