@@ -73,3 +73,44 @@ def extract_feats_split(ffs, datafile="train.xml", global_feat_dict=None,
     XTest,_ = make_design_mat(fdsTest, feat_dict)
 
     return X, feat_dict, np.array(targets), ids, XTest, np.array(targetsTest), idsTest
+
+def testMAE(preds, trues):
+    return np.sum(np.absolute(preds - trues)) / len(preds)
+
+## The following function does the feature extraction, learning, and prediction
+def mainTest(withhold = 0):
+    trainfile = "train.xml"
+    #testfile = "testcases.xml"
+    outputfile = "mypredictions.csv"  # feel free to change this or take it as an argument
+
+    # TODO put the names of the feature functions you've defined above in this list
+    ffs = [metadata_feats, unigram_feats]
+
+    # extract features
+    print "extracting training features..."
+    X_train,global_feat_dict,y_train,train_ids, XTest,targetsTest,idsTest = extract_feats(ffs, trainfile, withhold=withhold)
+    print "done extracting training features"
+    print
+
+    # TODO train here, and return regression parameters
+    print "learning..."
+    learned_w = splinalg.lsqr(X_train,y_train)[0]
+    print "done learning"
+    print
+
+    # get rid of training data and load test data
+    del X_train
+    del y_train
+    del train_ids
+    print "extracting test features..."
+    X_test,_,y_ignore,test_ids = extract_feats(ffs, testfile, global_feat_dict=global_feat_dict)
+    print "done extracting test features"
+    print
+
+    # TODO make predictions on text data and write them out
+    print "making predictions..."
+    preds = XTest.dot(learned_w)
+    print "done making predictions"
+    print
+
+    print "MAE on withheld data:", testMAE(preds, targetsTest)
