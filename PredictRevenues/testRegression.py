@@ -59,12 +59,17 @@ def extract_feats_split(ffs, datafile="train.xml", global_feat_dict=None,
             elif in_instance:
                 curr_inst.append(line)
 
+    #Combine the 3 lists into 1 list to match the indices
     data = zip(fds, targets, ids)
+    #Shuffles the data and divides them into training and testing data
     random.shuffle(data)
-    train_data = data[:(len(data) - withhold)]
-    test_data = data[(len(data) - withhold):]
-
-    fds, targets, ids = zip(*train_data)
+    trainData = data[:(len(data) - withhold)]
+    testData = data[(len(data) - withhold):]
+    #Divides the list into its components
+    fds, targets, ids = zip(*trainData)
+    fdsTest, targetsTest, idsTest = zip(*testData)
 
     X,feat_dict = make_design_mat(fds,global_feat_dict)
-    return X, feat_dict, np.array(targets), ids
+    XTest,_ = make_design_mat(fdsTest, feat_dict)
+
+    return X, feat_dict, np.array(targets), ids, XTest, np.array(targetsTest), idsTest
