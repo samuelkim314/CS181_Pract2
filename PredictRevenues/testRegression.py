@@ -7,10 +7,16 @@ extractedFile = None
 trainFile = None
 testFile = None
 
-params = {'withhold': 0,
-          'extractFeatures': True,
-          'extractedFile': None,
-          'loadPartition': False,
+"""values of 'loadFile':
+  'extract': load the extracted features
+              use if feature-functions are unchanged
+              'extractedFile' must be provided
+  'split'  : load the partitioned data
+              'trainFile' and 'testFile' must be provided
+  None     : Load all data from original xml files"""
+params = {'withhold': 100,
+          'load': None,
+          'extractedFile': 'extracted2',
           'trainFile': None,
           'testFile': None
           }

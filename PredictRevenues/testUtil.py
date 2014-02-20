@@ -1,4 +1,6 @@
 import cPickle
+import random
+import regression_starter as regress
 
 def unpickle(file):
     """Loads and returns a pickled data structure in the given `file` name
@@ -31,3 +33,19 @@ def splitData(fds, targets, ids, withhold=0):
     fdsTest, targetsTest, idsTest = zip(*testData)
 
     return fds, targets, ids, fdsTest, targetsTest, idsTest
+
+def loadData(params):
+    if params['load'] == None:
+        fds, targets, ids = regress.extract_feats_helper(regress.getFfs)
+        pickle((fds, targets, ids), params['extractFile'])
+    elif params['load'] == 'extract':
+        fds, targets, ids = unpickle(params['extractFile'])
+
+    if params['withhold'] == 0:
+        X,feat_dict = regress.make_design_mat(fds)
+        regress.main(X,feat_dict)
+        return
+    else:
+        fds, targets, ids, fdsTest, targetsTest, idsTest = splitData(fds, targets, ids, params['withhold'])
+        X,feat_dict = regress.make_design_mat(fds)
+        XTest,_ = regress.make_design_mat(fdsTest, feat_dict)
