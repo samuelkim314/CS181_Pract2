@@ -110,8 +110,6 @@ def extract_feats(ffs, datafile="train.xml", global_feat_dict=None):
             elif in_instance:
                 curr_inst.append(line)
 
-    print len(fds), len(targets)
-
     X,feat_dict = make_design_mat(fds,global_feat_dict)
     return X, feat_dict, np.array(targets), ids
 
@@ -288,7 +286,7 @@ def unigram_feats(md):
 def main():
     trainfile = "train.xml"
     testfile = "testcases.xml"
-    outputfile = "mypredictions.csv"  # feel free to change this or take it as an argument
+    outputfile = "mypredictions2.csv"  # feel free to change this or take it as an argument
 
     # TODO put the names of the feature functions you've defined above in this list
     ffs = [metadata_feats, unigram_feats]
@@ -301,7 +299,8 @@ def main():
 
     # TODO train here, and return regression parameters
     print "learning..."
-    learned_w = splinalg.lsqr(X_train,y_train)[0]
+    #learned_w = splinalg.lsqr(X_train,y_train)[0]
+    learned_w = splinalg.lsmr(X_train,y_train)[0]
     print "done learning"
     print
 
@@ -330,21 +329,20 @@ def mainTest(withhold = 0):
         return
 
     trainfile = "train.xml"
-    #testfile = "testcases.xml"
-    outputfile = "mypredictions.csv"  # feel free to change this or take it as an argument
 
     # TODO put the names of the feature functions you've defined above in this list
     ffs = [metadata_feats, unigram_feats]
 
     # extract features
     print "extracting training features..."
-    X_train,global_feat_dict,y_train,train_ids, XTest,targetsTest,idsTest = extract_feats(ffs, trainfile, withhold=withhold)
+    X_train,global_feat_dict,y_train,train_ids, XTest,targetsTest,idsTest = extract_feats_split(ffs, trainfile, withhold=withhold)
     print "done extracting training features"
     print
 
     # TODO train here, and return regression parameters
     print "learning..."
-    learned_w = splinalg.lsqr(X_train,y_train)[0]
+    #learned_w = splinalg.lsqr(X_train,y_train)[0]
+    learned_w = splinalg.lsmr(X_train,y_train)[0]
     print "done learning"
     print
 
@@ -352,10 +350,6 @@ def mainTest(withhold = 0):
     del X_train
     del y_train
     del train_ids
-    print "extracting test features..."
-    X_test,_,y_ignore,test_ids = extract_feats(ffs, testfile, global_feat_dict=global_feat_dict)
-    print "done extracting test features"
-    print
 
     # TODO make predictions on text data and write them out
     print "making predictions..."
