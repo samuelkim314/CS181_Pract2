@@ -273,27 +273,37 @@ def main(X_train=None, global_feat_dict=None):
     util.write_predictions(preds, test_ids, outputfile)
     print "done!"
 
-def mainTest(withhold=0, data=None):
-    if withhold==0:
-        main()
-        return
+def mainTest(withhold=0, params=None):
+
+    #default value for params
+    if params==None:
+        params = {'withhold': 0,
+          'load': None,
+          'extractFile': None,
+          'trainFile': None,
+          'testFile': None,
+          'writePredict': False,
+          'outputFile': 'predictions.csv'
+          }
 
     trainfile = "train.xml"
+    testfile = "testcases.xml"
 
     # TODO put the names of the feature functions you've defined above in this list
     ffs = [metadata_feats, unigram_feats]
 
-    if data==None:
-        # extract features
-        print "extracting training features..."
-        X_train,_y_train,train_ids, XTest,targetsTest,idsTest = extract_feats_split(ffs, trainfile, withhold=withhold)
-        print "done extracting training features"
-        print
-    else:
-        X_train = data['X']
-        y_train = data['targets']
-        XTest = data['XTest']
-        targetsTest = data['targetsTest']
+    print "extracting training/testing features..."
+    if params['load']==None:
+        if withhold==0:
+            X_train,global_feat_dict,y_train,train_ids = extract_feats(ffs, trainfile)
+            X_test,_,y_test,test_ids = extract_feats(ffs, testfile, global_feat_dict=global_feat_dict)
+        else:
+            X_train,_,y_train,train_ids,X_test,y_test,test_ids = extract_feats_split(ffs, trainfile, withhold=withhold)
+        test.pickle((X_train, y_train, train_ids,X_test,y_test,test_ids), params['extractFile'])
+    elif params['load']=='extract':
+        X_train, y_train, train_ids,X_test,y_test,test_ids = test.unpickle(params['extractFile'])
+    print "done extracting training/testing features"
+    print
 
     # TODO train here, and return regression parameters
     print "learning..."
@@ -309,11 +319,17 @@ def mainTest(withhold=0, data=None):
 
     # TODO make predictions on text data and write them out
     print "making predictions..."
-    preds = XTest.dot(learned_w)
+    preds = X_test.dot(learned_w)
     print "done making predictions"
     print
 
-    print "MAE on withheld data:", testMAE(preds, targetsTest)
+    if withhold > 0:
+        print "MAE on withheld data:", testMAE(preds, y_test)
+
+    if params['writePredict']==True:
+        print "writing predictions..."
+        util.write_predictions(preds, test_ids, params['outputFile'])
+        print "done!"
 
 if __name__ == "__main__":
     mainTest()
