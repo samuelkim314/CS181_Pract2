@@ -9,15 +9,15 @@ withhold = 100
               use if feature-functions are unchanged
               'extractedFile' must be provided
   'split'  : load the partitioned data
-              'trainFile' and 'testFile' must be provided
-  None     : Load all data from original xml files"""
-params = {'withhold': 100,
-          'load': 'extract',
+              'splitFile' must be provided
+  None     : Load all data from original xml files
+              if 'extractFile' provided, will save the extracted features
+              if 'splitfile' provided, will also save the split data"""
+loadParams = {'load': 'extract',
           'extractFile': 'featW100',
-          'trainFile': None,
-          'testFile': None,
+          'splitFile': None,
           'writePredict': False,
           'outputFile': 'predictions.csv'
           }
 
-regression_starter.mainTest(withhold, params)
+regression_starter.mainTest(withhold, loadParams)
