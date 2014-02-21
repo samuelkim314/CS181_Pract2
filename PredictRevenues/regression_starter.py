@@ -293,33 +293,7 @@ def mainTest(withhold=0, params=None):
     ffs = [metadata_feats, unigram_feats]
 
     print "extracting training/testing features..."
-    if params['load']==None:
-        fds, targets, train_ids = extract_feats_helper(ffs, trainfile)
-        test.pickle((fds,targets,train_ids),params['extractFile'])
-
-        if withhold==0:
-            X_train,feat_dict = make_design_mat(fds)
-            y_train=np.array(targets)
-            X_test,_,y_test,test_ids = extract_feats(ffs, testfile, global_feat_dict=feat_dict)
-        else:
-            fds, targets, train_ids, fdsTest, targetsTest, test_ids = test.splitData(fds, targets, train_ids, withhold)
-            X_train,feat_dict = make_design_mat(fds)
-            X_test,_ = make_design_mat(fdsTest, feat_dict)
-            y_train=np.array(targets)
-            y_test=np.array(targetsTest)
-        if params['splitFile'] != None:
-            test.pickle((X_train, y_train, train_ids,X_test,y_test,test_ids), params['splitFile'])
-    elif params['load']=='extract':
-        fds,targets,ids=test.unpickle(params['extractFile'])
-        fds, targets, train_ids, fdsTest, targetsTest, test_ids = test.splitData(fds, targets, ids, withhold)
-        X_train,feat_dict = make_design_mat(fds)
-        X_test,_ = make_design_mat(fdsTest, feat_dict)
-        y_train=np.array(targets)
-        y_test=np.array(targetsTest)
-        if params['splitFile'] != None:
-            test.pickle((X_train, y_train, train_ids,X_test,y_test,test_ids), params['splitFile'])
-    elif params['load']=='split':
-        X_train, y_train, train_ids,X_test,y_test,test_ids = test.unpickle(params['splitFile'])
+    X_train, y_train, train_ids,X_test,y_test,test_ids = test.loadData(params, ffs)
     print "done extracting training/testing features"
     print
 
