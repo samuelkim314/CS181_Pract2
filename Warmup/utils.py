@@ -43,7 +43,8 @@ def plotRegression(x, t, w, basis):
 
     #plot the predicted curve
     sampX = np.linspace(minX, maxX, 50)
-    phiMat = basis(sampX, len(w))
+    #phiMat = basis(sampX, len(w))
+    phiMat = basis(sampX, len(w), rangeX)
     sampT = np.dot(phiMat, w)
     plt.plot(sampX, np.dot(phiMat, w))
 

@@ -6,7 +6,8 @@ data = utils.importWarmupData()
 
 x = data['time']
 t = data['force']
-basis = regression.basisPoly
+#basis = regression.basisPoly
+basis = regression.basisFourier
 
 '''Maximum likelihood estimation'''
 w = regression.maximum_likelihood(x, t, basis, 8)

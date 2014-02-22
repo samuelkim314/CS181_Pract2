@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 def basisPoly(x, M):
     """phi_j(x) = x^j, where j goes from 0 to M-1
@@ -12,23 +13,25 @@ def basisPoly(x, M):
     else:
         return np.power(x[:, np.newaxis], ms[np.newaxis, :])
 
-def basisFourier(x, M):
+def basisFourier(x, M, T=0):
     Mcos = math.trunc((M - 1) / 2)
     Msin = M - 1 - Mcos
-    msCos = np.arange(Mcos)
-    msSin = np.arange(Msin)
+    msCos = np.arange(Mcos) + 1
+    msSin = np.arange(Msin) + 1
 
-    period = np.amax(x) - np.amin(x)
+    #period
+    if T==0:
+        T = np.amax(x) - np.amin(x)
 
     """if type(x) is float:
-        sinSub = np.sin(x * msSin * 2 * np.pi / period)
-        cosSub = np.cos(x * msCos * 2 * np.pi / period)
+        sinSub = np.sin(x * msSin * 2 * np.pi / T)
+        cosSub = np.cos(x * msCos * 2 * np.pi / T)
         return np.concatenate((np.array([1]), sinSub, cosSub), axis=0)
     else:"""
     ones = np.ones((len(x), 1))
-    sinSub = np.sin(np.outer(x, msSin) * 2 * np.pi / period)
-    cosSub = np.cos(np.outer(x, msCos) * 2 * np.pi / period)
-    return np.concatenate((ones, sinSub, cosSub), axis=0)
+    sinSub = np.sin(np.outer(x, msSin) * 2 * np.pi / T)
+    cosSub = np.cos(np.outer(x, msCos) * 2 * np.pi / T)
+    return np.concatenate((ones, sinSub, cosSub), axis=1)
 
 def errorFun(x, t, w, basis):
     return 0.5*np.sum((t - np.dot(w, basis(x)))**2)
@@ -44,6 +47,8 @@ def maximum_likelihood(x, t, basis, M):
         w:    array of parameters for the basis functions"""
     #design matrix given by phi_nj = phi_j(x_n)
     phiMat = basis(x, M)
+
+    print phiMat.shape
 
     #calculates the Moore-Penrose pseudo-inverse of the matrix phi
     phiTphi = np.dot(np.transpose(phiMat), phiMat)
