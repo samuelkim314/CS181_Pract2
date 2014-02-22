@@ -48,8 +48,6 @@ def maximum_likelihood(x, t, basis, M):
     #design matrix given by phi_nj = phi_j(x_n)
     phiMat = basis(x, M)
 
-    print phiMat.shape
-
     #calculates the Moore-Penrose pseudo-inverse of the matrix phi
     phiTphi = np.dot(np.transpose(phiMat), phiMat)
     MPMat = np.dot(np.linalg.inv(phiTphi), np.transpose(phiMat))
