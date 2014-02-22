@@ -33,7 +33,7 @@ def basisFourier(x, M):
 def errorFun(x, t, w, basis):
     return 0.5*np.sum((t - np.dot(w, basis(x)))**2)
 
-def solveW(x, t, basis, M):
+def maximum_likelihood(x, t, basis, M):
     """Solves exactly for w, the weights. Not recommended for large data sets.
     Arguments:
         x:     array of inputs
@@ -49,3 +49,23 @@ def solveW(x, t, basis, M):
     phiTphi = np.dot(np.transpose(phiMat), phiMat)
     MPMat = np.dot(np.linalg.inv(phiTphi), np.transpose(phiMat))
     return np.dot(MPMat, t)
+
+def bayesian_linear_regression(x, t, basis, M, alpha = 1, beta = 1):
+    """Solves exactly for w, the weights. Not recommended for large data sets.
+    Arguments:
+        x:     array of inputs
+        t:     array of corresponding target variables
+        basis: function that calculates basis functions for inputs
+        M:     number of basis functions to use
+        alpha: initial prior distribution pararmeter
+        beta:  precision, inverse variance
+    Return:
+        w:    array of parameters for the basis functions"""
+
+    #design matrix
+    Phi = basis(x, M)
+
+    S_N = np.linalg.inv(alpha*np.identity(M) + beta*np.dot(np.transpose(Phi), Phi))
+    m_N = beta*S_N.dot(np.transpose(Phi)).dot(t)
+
+    return m_N

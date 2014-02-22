@@ -8,6 +8,14 @@ x = data['time']
 t = data['force']
 basis = regression.basisPoly
 
-w = regression.solveW(x, t, basis, 10)
+'''Maximum likelihood estimation'''
+w = regression.maximum_likelihood(x, t, basis, 8)
+print w
+
+utils.plotRegression(x, t, w, basis)
+
+'''Bayesian linear regression'''
+w = regression.bayesian_linear_regression(x, t, basis, 8)
+print w
 
 utils.plotRegression(x, t, w, basis)
