@@ -36,7 +36,30 @@ def splitData(fds, targets, ids, withhold=0):
     return fds, targets, ids, fdsTest, targetsTest, idsTest
 
 def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.xml"):
-    """loads the movie data"""
+    """
+    loads the movie data
+
+    arguments:
+        params      : dict with several keys:
+            load        : loading mode; either: 'extract' to load from 
+                        `params['extractFile']`, 'split' to load from 
+                        `params['splitFile']`, or None to extract features and 
+                        save to `params['extractFile']` and/or 
+                        `params['splitFile']`. 
+            extractFile : file to load/save extracted features to/from,
+                        depending on loading mode
+            splitFile   : file to load/save split data to/from,
+                        depending on loading mode
+        withhold    : number of data points to withhold for cross-validation
+        ffs         : list of feature functions
+        trainfile   : path to training file (train.xml)
+        testfile    : path to test cases file
+
+    returns:
+
+    """
+
+    # extract and split the data anew
     if params['load']==None:
         fds, targets, train_ids = regress.extract_feats_helper(ffs, trainfile)
         pickle((fds,targets,train_ids),params['extractFile'])
@@ -53,6 +76,8 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
             y_test=np.array(targetsTest)
         if params['splitFile'] != None:
             pickle((X_train, y_train, train_ids,X_test,y_test,test_ids), params['splitFile'])
+    
+    # load data from `params['extractFile']`, but split it anew
     elif params['load']=='extract':
         fds,targets,ids=unpickle(params['extractFile'])
         fds, targets, train_ids, fdsTest, targetsTest, test_ids = splitData(fds, targets, ids, withhold)
@@ -62,6 +87,8 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
         y_test=np.array(targetsTest)
         if params['splitFile'] != None:
             pickle((X_train, y_train, train_ids,X_test,y_test,test_ids), params['splitFile'])
+
+    # load data from `params['splitFile']`
     elif params['load']=='split':
         X_train, y_train, train_ids,X_test,y_test,test_ids = unpickle(params['splitFile'])
 
