@@ -8,8 +8,10 @@ def poly(Xmat, M=2):
 
     polyMat = sparse.hstack([ones, Xmat])
     if M > 2:
-        for i in (range(M - 2) + 2):
-            polyMat = sparse.hstack([polyMat, Xmat**i])
+        for i in (range(2,M)):
+            Xtemp = Xmat.copy()
+            Xtemp.data **= i
+            polyMat = sparse.hstack([polyMat, Xtemp])
     return polyMat
 
 def polydot(Xtest, w):
