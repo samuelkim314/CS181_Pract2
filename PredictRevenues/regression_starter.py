@@ -306,17 +306,6 @@ def mainTest(withhold=0, params=None):
     print "done learning, ", time2-time1, "s"
     print
 
-    # get rid of training data and load test data
-    del X_train
-    del y_train
-    del train_ids
-
-    # TODO make predictions on text data and write them out
-    print "making predictions..."
-    preds = X_test.dot(learned_w)
-    print "done making predictions"
-    print
-    """
     X_train2 = basis.poly(X_train, 2)
 
     print "learning..."
@@ -327,15 +316,26 @@ def mainTest(withhold=0, params=None):
     print "done learning, ", time2-time1, "s"
     print
 
+    # get rid of training data and load test data
+    del X_train
+    del y_train
+    del train_ids
+
+    # TODO make predictions on text data and write them out
     print "making predictions..."
-    preds2 = X_test.dot(learned_w2)
+    preds = X_test.dot(learned_w)
     print "done making predictions"
     print
-    """
+
+    print "making predictions..."
+    preds2 = basis.poly(X_test, 2).dot(learned_w2)
+    print "done making predictions"
+    print
+
 
     if withhold > 0:
         print "MAE on withheld data:", testMAE(preds, y_test)
-        #print "MAE on withheld data:", testMAE(preds2, y_test)
+        print "MAE on withheld data:", testMAE(preds2, y_test)
 
     if params['writePredict']==True:
         print "writing predictions..."
