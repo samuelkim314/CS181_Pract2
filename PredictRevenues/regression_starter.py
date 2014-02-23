@@ -306,16 +306,6 @@ def mainTest(withhold=0, params=None):
     print "done learning, ", time2-time1, "s"
     print
 
-    X_train2 = basis.poly(X_train, 10)
-
-    print "learning..."
-    time1 = time.clock()
-    #learned_w = splinalg.lsqr(X_train,y_train)[0]
-    learned_w2 = splinalg.lsmr(X_train2,y_train)[0]
-    time2 = time.clock()
-    print "done learning, ", time2-time1, "s"
-    print
-
     # get rid of training data and load test data
     del X_train
     del y_train
@@ -327,15 +317,8 @@ def mainTest(withhold=0, params=None):
     print "done making predictions"
     print
 
-    print "making predictions..."
-    preds2 = basis.poly(X_test, 10).dot(learned_w2)
-    print "done making predictions"
-    print
-
-
     if withhold > 0:
         print "MAE on withheld data:", testMAE(preds, y_test)
-        print "MAE on withheld data:", testMAE(preds2, y_test)
 
     if params['writePredict']==True:
         print "writing predictions..."
