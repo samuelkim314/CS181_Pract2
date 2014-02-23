@@ -62,6 +62,7 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
     # extract and split the data anew
     if params['load']==None:
         fds, targets, train_ids = regress.extract_feats_helper(ffs, trainfile)
+        print "loaded %d fds" % len(fds) 
         pickle((fds,targets,train_ids),params['extractFile'])
 
         if withhold==0:
@@ -69,6 +70,7 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
             y_train=np.array(targets)
             X_test,_,y_test,test_ids = regress.extract_feats(ffs, testfile, global_feat_dict=feat_dict)
         else:
+            print "withholding %d of %d fds" % (withhold, len(fds)-withhold)
             fds, targets, train_ids, fdsTest, targetsTest, test_ids = splitData(fds, targets, train_ids, withhold)
             X_train,feat_dict = regress.make_design_mat(fds)
             X_test,_ = regress.make_design_mat(fdsTest, feat_dict)
@@ -80,6 +82,8 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
     # load data from `params['extractFile']`, but split it anew
     elif params['load']=='extract':
         fds,targets,ids=unpickle(params['extractFile'])
+        print "loaded %d fds" % len(fds) 
+        print "withholding %d of %d fds" % (withhold, len(fds)-withhold)
         fds, targets, train_ids, fdsTest, targetsTest, test_ids = splitData(fds, targets, ids, withhold)
         X_train,feat_dict = regress.make_design_mat(fds)
         X_test,_ = regress.make_design_mat(fdsTest, feat_dict)
@@ -91,5 +95,7 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
     # load data from `params['splitFile']`
     elif params['load']=='split':
         X_train, y_train, train_ids,X_test,y_test,test_ids = unpickle(params['splitFile'])
+        print "loaded %d fds" % len(train_ids) 
+        print "withholding %d of %d fds" % (len(test_ids), len(train_ids))
 
     return X_train, y_train, train_ids,X_test,y_test,test_ids
