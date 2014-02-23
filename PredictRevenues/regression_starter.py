@@ -306,7 +306,7 @@ def mainTest(withhold=0, params=None):
     print "done learning, ", time2-time1, "s"
     print
 
-    X_train2 = basis.poly(X_train, 2)
+    X_train2 = basis.poly(X_train, 10)
 
     print "learning..."
     time1 = time.clock()
@@ -328,7 +328,7 @@ def mainTest(withhold=0, params=None):
     print
 
     print "making predictions..."
-    preds2 = basis.poly(X_test, 2).dot(learned_w2)
+    preds2 = basis.poly(X_test, 10).dot(learned_w2)
     print "done making predictions"
     print
 

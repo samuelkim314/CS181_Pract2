@@ -55,11 +55,17 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
             pickle((X_train, y_train, train_ids,X_test,y_test,test_ids), params['splitFile'])
     elif params['load']=='extract':
         fds,targets,ids=unpickle(params['extractFile'])
-        fds, targets, train_ids, fdsTest, targetsTest, test_ids = splitData(fds, targets, ids, withhold)
-        X_train,feat_dict = regress.make_design_mat(fds)
-        X_test,_ = regress.make_design_mat(fdsTest, feat_dict)
-        y_train=np.array(targets)
-        y_test=np.array(targetsTest)
+
+        if withhold==0:
+            X_train,feat_dict = regress.make_design_mat(fds)
+            y_train=np.array(targets)
+            X_test,_,y_test,test_ids = regress.extract_feats(ffs, testfile, global_feat_dict=feat_dict)
+        else:
+            fds, targets, train_ids, fdsTest, targetsTest, test_ids = splitData(fds, targets, ids, withhold)
+            X_train,feat_dict = regress.make_design_mat(fds)
+            X_test,_ = regress.make_design_mat(fdsTest, feat_dict)
+            y_train=np.array(targets)
+            y_test=np.array(targetsTest)
         if params['splitFile'] != None:
             pickle((X_train, y_train, train_ids,X_test,y_test,test_ids), params['splitFile'])
     elif params['load']=='split':
