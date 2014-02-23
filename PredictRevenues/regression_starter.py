@@ -222,10 +222,10 @@ def unigram_feats(md):
         if hasattr(md,rev):
             # count occurrences of asciified, lowercase, non-numeric unigrams
             # after removing punctuation
-            c.update([token for token in
+            c.update(token for token in
                         util.punct_patt.sub("",
                          util.asciify(md.__dict__[rev].strip().lower())).split()
-                          if util.non_numeric(token)])
+                          if util.non_numeric(token))
     return c
 
 
@@ -343,4 +343,11 @@ def mainTest(withhold=0, params=None):
         print "done!"
 
 if __name__ == "__main__":
-    mainTest()
+    mainTest(withhold=1000,params={
+      'withhold': 0,
+      'load': None,
+      'extractFile': 'data/extracted2ffs',
+      'outputFile': 'data/predictions.csv',
+      'splitFile': 'data/splitFile',
+      'writePredict': True
+      })
