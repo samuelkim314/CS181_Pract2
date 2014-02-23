@@ -54,8 +54,9 @@ import numpy as np
 from scipy import sparse
 from scipy.sparse import linalg as splinalg
 import util
-import random
 import testUtil as test
+import time
+import basis
 
 def extract_feats(ffs, datafile="train.xml", global_feat_dict=None):
     fds, targets, ids = extract_feats_helper(ffs, datafile)
@@ -183,9 +184,6 @@ def make_design_mat(fds, global_feat_dict=None):
                    shape=(len(fds), len(feat_dict)))
     return X, feat_dict
 
-def getFfs():
-    return [metadata_feats, unigram_feats]
-
 ## Here are two example feature-functions. They each take in a util.MovieData
 ## object, and return a dictionary mapping feature-names to numeric values.
 ## TODO: modify these functions, and/or add new ones.
@@ -293,15 +291,19 @@ def mainTest(withhold=0, params=None):
     ffs = [metadata_feats, unigram_feats]
 
     print "extracting training/testing features..."
-    X_train, y_train, train_ids,X_test,y_test,test_ids = test.loadData(params, ffs)
-    print "done extracting training/testing features"
+    time1 = time.clock()
+    X_train, y_train, train_ids,X_test,y_test,test_ids = test.loadData(params, withhold, ffs)
+    time2 = time.clock()
+    print "done extracting training/testing features", time2-time1, "s"
     print
 
     # TODO train here, and return regression parameters
     print "learning..."
+    time1 = time.clock()
     #learned_w = splinalg.lsqr(X_train,y_train)[0]
     learned_w = splinalg.lsmr(X_train,y_train)[0]
-    print "done learning"
+    time2 = time.clock()
+    print "done learning, ", time2-time1, "s"
     print
 
     # get rid of training data and load test data
@@ -314,9 +316,26 @@ def mainTest(withhold=0, params=None):
     preds = X_test.dot(learned_w)
     print "done making predictions"
     print
+    """
+    X_train2 = basis.poly(X_train, 2)
+
+    print "learning..."
+    time1 = time.clock()
+    #learned_w = splinalg.lsqr(X_train,y_train)[0]
+    learned_w2 = splinalg.lsmr(X_train2,y_train)[0]
+    time2 = time.clock()
+    print "done learning, ", time2-time1, "s"
+    print
+
+    print "making predictions..."
+    preds2 = X_test.dot(learned_w2)
+    print "done making predictions"
+    print
+    """
 
     if withhold > 0:
         print "MAE on withheld data:", testMAE(preds, y_test)
+        #print "MAE on withheld data:", testMAE(preds2, y_test)
 
     if params['writePredict']==True:
         print "writing predictions..."

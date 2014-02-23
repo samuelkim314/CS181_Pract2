@@ -1,6 +1,7 @@
 import cPickle
 import random
 import regression_starter as regress
+import numpy as np
 
 def unpickle(file):
     """Loads and returns a pickled data structure in the given `file` name
@@ -34,7 +35,8 @@ def splitData(fds, targets, ids, withhold=0):
 
     return fds, targets, ids, fdsTest, targetsTest, idsTest
 
-def loadData(params, ffs, trainfile="train.xml", testfile="testcases.xml"):
+def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.xml"):
+    """loads the movie data"""
     if params['load']==None:
         fds, targets, train_ids = regress.extract_feats_helper(ffs, trainfile)
         pickle((fds,targets,train_ids),params['extractFile'])

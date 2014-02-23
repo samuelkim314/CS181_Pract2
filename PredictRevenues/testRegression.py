@@ -12,9 +12,9 @@ withhold = 100
   None     : Load all data from original xml files
               if 'extractFile' provided, will save the extracted features
               if 'splitfile' provided, will also save the split data"""
-loadParams = {'load': 'extract',
-          'extractFile': 'featW100',
-          'splitFile': None,
+loadParams = {'load': 'split',
+          'extractFile': 'extracted2ffs',
+          'splitFile': 'withhold100',
           'writePredict': False,
           'outputFile': 'predictions.csv'
           }
