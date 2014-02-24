@@ -56,7 +56,6 @@ from scipy.sparse import linalg as splinalg
 import util
 import testUtil as test
 import time
-import basis
 
 def extract_feats(ffs, datafile="train.xml", global_feat_dict=None):
     fds, targets, ids = extract_feats_helper(ffs, datafile)
@@ -228,6 +227,20 @@ def unigram_feats(md):
                           if util.non_numeric(token)])
     return c
 
+def unigram_noStop(md):
+    """
+    arguments:
+      md is a util.MovieData object
+    returns:
+      a dictionary containing a mapping from unigram features from the reviews
+      to their values on this util.MovieData object
+    """
+    unigramCount = unigram_feats(md)
+    for sword in util.getStopWords():
+        del unigramCount[sword]
+
+    return unigramCount
+
 
 ## The following function does the feature extraction, learning, and prediction
 def main(X_train=None, global_feat_dict=None):
@@ -288,7 +301,8 @@ def mainTest(withhold=0, params=None):
     testfile = "testcases.xml"
 
     # TODO put the names of the feature functions you've defined above in this list
-    ffs = [metadata_feats, unigram_feats]
+    #ffs = [metadata_feats, unigram_feats]
+    ffs = [metadata_feats, unigram_noStop]
 
     print "extracting training/testing features..."
     time1 = time.clock()

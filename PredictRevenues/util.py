@@ -4,9 +4,9 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
-# MovieData is an object to encapsulate the metadata and reviews associated with 
-# a single movie. It is created from an "instance" element contained in either 
-# train.xml or testcases.xml, and should allow you to ignore parsing the xml and 
+# MovieData is an object to encapsulate the metadata and reviews associated with
+# a single movie. It is created from an "instance" element contained in either
+# train.xml or testcases.xml, and should allow you to ignore parsing the xml and
 # focus on feature extraction and learning.
 class MovieData(object):
     """
@@ -51,7 +51,7 @@ class MovieData(object):
     numeric_fields = ["running_time", "production_budget"] # numeric fields that don't start with "num"
     implicit_list_atts = ["oscar_winning_director", "oscar_winning_actor", "highest_grossing_actor"]
     reviewers = ["AC","BO","CL","EW","NY","VA","VV"]
-    
+
     def __init__(self, inst_el):
         """
         inst_el is an ElementTree element representing a movie instance, extracted from
@@ -97,11 +97,16 @@ def non_numeric(s):
     except ValueError:
         return True
 
-# if you would like to use stopwords in your feature engineering, consider using 
+# if you would like to use stopwords in your feature engineering, consider using
 # the stopwords in english.stop (from http://jmlr.org/papers/volume5/lewis04a/a11-smart-stop-list/english.stop)
 # as follows:
 #with open("english.stop") as f:
 #    stop_words = set([line.strip() for line in f.readlines()])
+
+def getStopWords():
+    with open("english.stop") as f:
+        stop_words = set([line.strip() for line in f.readlines()])
+    return stop_words
 
 # a regular expression for identifying punctuation in reviews
 punct_patt = re.compile('[\'\.,:\?;!"\(\)\[\]\$@%]')
