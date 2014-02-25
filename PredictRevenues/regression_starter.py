@@ -221,10 +221,10 @@ def unigram_feats(md):
         if hasattr(md,rev):
             # count occurrences of asciified, lowercase, non-numeric unigrams
             # after removing punctuation
-            c.update([token for token in
+            c.update(token for token in
                         util.punct_patt.sub("",
                          util.asciify(md.__dict__[rev].strip().lower())).split()
-                          if util.non_numeric(token)])
+                          if util.non_numeric(token))
     return c
 
 def unigram_noStop(md):
@@ -339,5 +339,140 @@ def mainTest(withhold=0, params=None):
         util.write_predictions(preds, test_ids, params['outputFile'])
         print "done!"
 
+
+def mainTestIter(withhold=0, params=None):
+    import learn
+
+    #default value for params
+    if params==None:
+        params = {}
+
+    params = dict({'withhold': 0,
+      'load': None,
+      'extractFile': None,
+      'trainFile': None,
+      'testFile': None,
+      'writePredict': False,
+      'outputFile': 'predictions.csv',
+
+      # arguments to `learn`
+      'options': {},
+
+      # the option to cycle through
+      'option': None,
+
+      # range of values to cycle through
+      'range': []
+    }, **params)
+
+    trainfile = "train.xml"
+    testfile = "testcases.xml"
+
+    # TODO put the names of the feature functions you've defined above in this list
+    ffs = [metadata_feats, unigram_feats]
+
+    print "extracting training/testing features..."
+    time1 = time.clock()
+    X_train, y_train, train_ids, X_test, y_test, test_ids = test.loadData(params, withhold, ffs)
+    time2 = time.clock()
+    print "done extracting training/testing features", time2-time1, "s"
+    print
+
+    # options for the learning engine
+    options = params['options']
+
+    # array to store MAEs for various values of learning options
+    MAEs = []
+
+    print "iterating over values of %s from %s ... %s" % (params['option'], params['range'][0], params['range'][-1])
+    print "================================================================================"
+    # iterate through each value of `params['option']` in `params['range']`
+    # and calculate the MAE for that value
+    for (i, value) in enumerate(params['range']):
+        print "%s = %s" % (params['option'], str(value))
+        op = dict(options)
+        op[params['option']] = value
+        decomp = None
+
+        # train here, and return regression parameters
+        print "learning..."
+        time1 = time.clock()
+        if 'reduction' in op and op['reduction'] != None:
+            ((learned_w0, learned_w), decomp) = learn.learn(X_train, y_train, **op)
+        else:
+            (learned_w0, learned_w) = learn.learn(X_train, y_train, **op)
+
+        time2 = time.clock()
+        print "done learning, ", time2-time1, "s"
+        print
+
+
+        # make predictions on text data and write them out
+        print "making predictions..."
+        if decomp is None:
+            preds = X_test.dot(learned_w) + learned_w0
+        else:
+            preds = decomp(X_test).dot(learned_w) + learned_w0
+        print "done making predictions"
+        print
+
+        # cross-validate
+        if withhold > 0:
+            mae = testMAE(preds, y_test)
+            print "MAE on withheld data: ", mae
+            MAEs.append(mae) 
+
+        print "--------------------------------------------------------------------------------"
+    
+    print "================================================================================"
+
+    # tabulate results
+    results = dict()
+    print "Results:"
+    print "%s \t MAE" % params['option']
+    for (i, value) in enumerate(params['range']):
+        print "%s \t %d" % (value, MAEs[i])
+        results[value] = MAEs[i]
+
+    return results
+
 if __name__ == "__main__":
+
+    # Uncomment this to try different learning methods
+    # mainTestIter(withhold=100,params={
+    #   'load': 'extract',
+    #   'extractFile': 'data/extracted2ffs',
+    #   'outputFile': 'data/predictions.csv',
+    #   'splitFile': 'data/splitFile',
+    #   'writePredict': True,
+
+    #   # Try different modes
+    #   'options': { },
+    #   'option': 'mode',
+    #   'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ] 
+    #   # 'range': ['Perceptron', 'SGDRegressor' ]
+      
+
+    #   # # Try different decompositions
+    #   # 'options': {
+    #   #   'mode':'LarsCV',
+    #   #   'n_components': 2
+    #   # },
+    #   # 'option': 'reduction',
+    #   # 'range': ['tsvd', 'nmf']
+    # })
+    
+    # ------------------------------------------------------------------------
+    
+    # Uncomment this to use Sam's code for cross-validation on a reasonable 
+    # subset of the data
+    # mainTest(withhold=300,params={
+    #   'withhold': 0,
+    #   'load': 'extract',
+    #   'extractFile': 'data/extracted2ffs',
+    #   'outputFile': 'data/predictions.csv',
+    #   'splitFile': 'data/splitFile',
+    #   'writePredict': True
+    #   })
+
     mainTest()
