@@ -5,15 +5,16 @@ from scipy.sparse import linalg as splinalg
 import sklearn.linear_model as sklin
 import sklearn.decomposition
 
-def learn(X_train, y_train, mode='lsmr', reduction=None, n_components=10):
+def learn(X_train, y_train, mode='lsmr', reduction=None, n_components=10, alphas=[0.1, 1., 10.]):
     def ridge():
         model = sklin.Ridge()
         model.fit(X_train, y_train)
         return (model.intercept_,model.coef_)
 
     def ridgeCV():
-        model = sklin.RidgeCV()
+        model = sklin.RidgeCV(alphas=np.array(alphas))
         model.fit(X_train, y_train)
+        print "FYI alpha = %f" % model.alpha_
         return (model.intercept_,model.coef_)
 
     def ARDRegression():

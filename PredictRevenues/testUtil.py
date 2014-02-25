@@ -69,6 +69,7 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
             X_train,feat_dict = regress.make_design_mat(fds)
             y_train=np.array(targets)
             X_test,_,y_test,test_ids = regress.extract_feats(ffs, testfile, global_feat_dict=feat_dict)
+            train_ids = []
         else:
             print "withholding %d of %d fds" % (withhold, len(fds)-withhold)
             fds, targets, train_ids, fdsTest, targetsTest, test_ids = splitData(fds, targets, train_ids, withhold)
@@ -88,6 +89,7 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
             X_train,feat_dict = regress.make_design_mat(fds)
             y_train=np.array(targets)
             X_test,_,y_test,test_ids = regress.extract_feats(ffs, testfile, global_feat_dict=feat_dict)
+            train_ids = []
         else:
             print "withholding %d of %d fds" % (withhold, len(fds)-withhold)
 
@@ -106,4 +108,4 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
         print "loaded %d fds" % len(train_ids) 
         print "withholding %d of %d fds" % (len(test_ids), len(train_ids))
 
-    return X_train, y_train, train_ids,X_test,y_test,test_ids
+    return X_train,y_train,train_ids, X_test,y_test,test_ids
