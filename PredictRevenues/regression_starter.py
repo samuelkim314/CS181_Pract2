@@ -198,6 +198,8 @@ def metadata_feats(md):
     for k,v in md.__dict__.iteritems():
         if k in util.MovieData.implicit_list_atts or k in util.MovieData.reviewers:
             continue
+        if k == "target":
+            continue
         if isinstance(v, list):
             d.update([(k+"-"+val,1) for val in v])
         elif isinstance(v, float):
@@ -420,10 +422,10 @@ def mainTestIter(withhold=0, params=None):
         if withhold > 0:
             mae = testMAE(preds, y_test)
             print "MAE on withheld data: ", mae
-            MAEs.append(mae) 
+            MAEs.append(mae)
 
         print "--------------------------------------------------------------------------------"
-    
+
     print "================================================================================"
 
     # tabulate results
@@ -449,9 +451,9 @@ if __name__ == "__main__":
     #   # Try different modes
     #   'options': { },
     #   'option': 'mode',
-    #   'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ] 
+    #   'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ]
     #   # 'range': ['Perceptron', 'SGDRegressor' ]
-      
+
 
     #   # # Try different decompositions
     #   # 'options': {
@@ -461,10 +463,10 @@ if __name__ == "__main__":
     #   # 'option': 'reduction',
     #   # 'range': ['tsvd', 'nmf']
     # })
-    
+
     # ------------------------------------------------------------------------
-    
-    # Uncomment this to use Sam's code for cross-validation on a reasonable 
+
+    # Uncomment this to use Sam's code for cross-validation on a reasonable
     # subset of the data
     # mainTest(withhold=300,params={
     #   'withhold': 0,
