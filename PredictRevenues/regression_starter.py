@@ -233,7 +233,7 @@ def unigram_noStop(md):
       md is a util.MovieData object
     returns:
       a dictionary containing a mapping from unigram features from the reviews
-      to their values on this util.MovieData object
+      to their values on this util.MovieData object, with stop words removed
     """
     unigramCount = unigram_feats(md)
     for sword in util.getStopWords():
