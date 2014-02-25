@@ -343,61 +343,8 @@ def mainTest(withhold=0, params=None):
         print "done!"
 
 
-import sklearn.linear_model as sklin
-
-def learn(X_train, y_train, mode='lsmr'):
-    def ridge():
-        model = sklin.Ridge()
-        model.fit(X_train, y_train)
-        return (model.intercept_,model.coef_)
-
-    def ridgeCV():
-        model = sklin.RidgeCV()
-        model.fit(X_train, y_train)
-        return (model.intercept_,model.coef_)
-
-    def SGDRegressor():
-        model = sklin.SGDRegressor()
-        model.fit(X_train, y_train)
-        return (model.intercept_,model.coef_)
-
-    def LassoCV():
-        model = sklin.LassoCV()
-        model.fit(X_train, y_train)
-        return (model.intercept_,model.coef_)
-
-    def LarsCV():
-        model = sklin.LarsCV()
-        model.fit(X_train, y_train)
-        return (model.intercept_,model.coef_)
-
-    def LassoLarsCV():
-        model = sklin.LassoLarsCV()
-        model.fit(X_train, y_train)
-        return (model.intercept_,model.coef_)
-
-    def ElasticNetCV():
-        model = sklin.ElasticNetCV()
-        model.fit(X_train, y_train)
-        return (model.intercept_,model.coef_)
-        
-
-    modes = {
-        'lsmr': lambda: (0,splinalg.lsmr(X_train,y_train)[0]),
-        'lsqr': lambda: (0,splinalg.lsqr(X_train,y_train)[0]),
-        'ridge': ridge,
-        'ridgeCV': ridgeCV,
-        'SGDRegressor': SGDRegressor, 
-        'LassoCV': LassoCV,
-        'LarsCV': LarsCV,
-        'LassoLarsCV': LassoLarsCV,
-        'ElasticNetCV': ElasticNetCV
-    }
-    learned_w = modes[mode]()
-    return learned_w
-        
-
 def mainTestIter(withhold=0, params=None):
+    import learn
 
     #default value for params
     if params==None:
@@ -448,11 +395,16 @@ def mainTestIter(withhold=0, params=None):
         print "%s = %s" % (params['option'], str(value))
         op = dict(options)
         op[params['option']] = value
+        decomp = None
 
         # train here, and return regression parameters
         print "learning..."
         time1 = time.clock()
-        (learned_w0, learned_w) = learn(X_train, y_train, **op)
+        if 'reduction' in op and op['reduction'] != None:
+            ((learned_w0, learned_w), decomp) = learn.learn(X_train, y_train, **op)
+        else:
+            (learned_w0, learned_w) = learn.learn(X_train, y_train, **op)
+
         time2 = time.clock()
         print "done learning, ", time2-time1, "s"
         print
@@ -460,7 +412,10 @@ def mainTestIter(withhold=0, params=None):
 
         # make predictions on text data and write them out
         print "making predictions..."
-        preds = X_test.dot(learned_w) + learned_w0
+        if decomp is None:
+            preds = X_test.dot(learned_w) + learned_w0
+        else:
+            preds = decomp(X_test).dot(learned_w) + learned_w0
         print "done making predictions"
         print
 
@@ -492,12 +447,23 @@ if __name__ == "__main__":
       'splitFile': 'data/splitFile',
       'writePredict': True,
 
-      'options': {
-
-      },
+      # Try different modes
+      'options': { },
       'option': 'mode',
-      'range': ['lsmr', 'lsqr', 'ridge', 'ridgeCV', 'LassoCV','LarsCV','LassoLarsCV','ElasticNetCV']
+      'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ] 
+      # 'range': ['Perceptron', 'SGDRegressor' ]
+      
+
+      # # Try different decompositions
+      # 'options': {
+      #   'mode':'LarsCV',
+      #   'n_components': 2
+      # },
+      # 'option': 'reduction',
+      # 'range': ['tsvd', 'nmf']
     })
+
+
     # mainTest(withhold=1000,params={
     #   'withhold': 0,
     #   'load': 'extract',
