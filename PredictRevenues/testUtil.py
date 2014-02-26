@@ -26,7 +26,7 @@ def splitData(fds, targets, ids, withhold=0):
     #Combine the 3 lists into 1 list to match the indices
     data = zip(fds, targets, ids)
     #Shuffles the data and divides them into training and testing data
-    #random.shuffle(data)
+    random.shuffle(data)
     trainData = data[:(len(data) - withhold)]
     testData = data[(len(data) - withhold):]
     #Divides the list into its components
