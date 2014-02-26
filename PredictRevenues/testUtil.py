@@ -35,7 +35,33 @@ def splitData(fds, targets, ids, withhold=0):
 
     return fds, targets, ids, fdsTest, targetsTest, idsTest
 
-def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.xml"):
+#Splits in a predictable way - withholding the last withhold of the data
+def splitData1(fds, targets, ids, withhold=0):
+    #Combine the 3 lists into 1 list to match the indices
+    data = zip(fds, targets, ids)
+
+    trainData = data[:(len(data) - withhold)]
+    testData = data[(len(data) - withhold):]
+    #Divides the list into its components
+    fds, targets, ids = zip(*trainData)
+    fdsTest, targetsTest, idsTest = zip(*testData)
+
+    return fds, targets, ids, fdsTest, targetsTest, idsTest
+
+#Splits in a predictable way - withholding the first withhold of the data
+def splitData2(fds, targets, ids, withhold=0):
+    #Combine the 3 lists into 1 list to match the indices
+    data = zip(fds, targets, ids)
+
+    trainData = data[withhold:]
+    testData = data[:withhold]
+    #Divides the list into its components
+    fds, targets, ids = zip(*trainData)
+    fdsTest, targetsTest, idsTest = zip(*testData)
+
+    return fds, targets, ids, fdsTest, targetsTest, idsTest
+
+def loadData2(params, withhold, ffs, trainfile="train.xml", testfile="testcases.xml"):
     """
     loads the movie data
 
@@ -108,5 +134,63 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
         X_train, y_train, train_ids,X_test,y_test,test_ids = unpickle(params['splitFile'])
         print "loaded %d fds" % len(train_ids)
         print "withholding %d of %d fds" % (len(test_ids), len(train_ids))
+
+    return X_train,y_train,train_ids, X_test,y_test,test_ids
+
+def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.xml"):
+    """
+    loads the movie data
+
+    arguments:
+        params      : dict with several keys:
+            load        : loading mode; either: 'extract' to load from
+                        `params['extractFile']`, 'split' to load from
+                        `params['splitFile']`, or None to extract features and
+                        save to `params['extractFile']` and/or
+                        `params['splitFile']`.
+            extractFile : file to load/save extracted features to/from,
+                        depending on loading mode
+            splitFile   : file to load/save split data to/from,
+                        depending on loading mode
+        withhold    : number of data points to withhold for cross-validation
+        ffs         : list of feature functions
+        trainfile   : path to training file (train.xml)
+        testfile    : path to test cases file
+
+    returns:
+
+    """
+    # load data from `params['splitFile']`
+    if params['load']=='split':
+        X_train, y_train, train_ids,X_test,y_test,test_ids = unpickle(params['splitFile'])
+        print "loaded %d fds" % len(train_ids)
+        print "withholding %d of %d fds" % (len(test_ids), len(train_ids))
+    else:
+        # load data from scratch
+        if params['load']==None:
+            fds, targets, train_ids = regress.extract_feats_helper(ffs, trainfile)
+            print "loaded %d fds" % len(fds)
+            if params['extractFile'] != None:
+                pickle((fds,targets,train_ids),params['extractFile'])
+        # load data from `params['extractFile']`, but split it anew
+        elif params['load']=='extract':
+            fds,targets,train_ids=unpickle(params['extractFile'])
+
+        # load the test data from the testcases file
+        if withhold==0:
+            X_train,feat_dict = regress.make_design_mat(fds)
+            y_train=np.array(targets)
+            X_test,_,y_test,test_ids = regress.extract_feats(ffs, testfile, global_feat_dict=feat_dict)
+            train_ids = []
+        # withhold some of the training data into test data
+        else:
+            fds, targets, train_ids, fdsTest, targetsTest, test_ids = splitData(fds, targets, train_ids, withhold)
+            X_train,feat_dict = regress.make_design_mat(fds)
+            X_test,_ = regress.make_design_mat(fdsTest, feat_dict)
+            y_train=np.array(targets)
+            y_test=np.array(targetsTest)
+
+        if params['splitFile'] != None:
+            pickle((X_train, y_train, train_ids,X_test,y_test,test_ids), params['splitFile'])
 
     return X_train,y_train,train_ids, X_test,y_test,test_ids

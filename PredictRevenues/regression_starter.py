@@ -206,9 +206,25 @@ def metadata_feats(md):
             d[k] = v
         elif isinstance(v, bool):
             d[k] = float(v)
+        #elif k == "release_date":
+        #    d[k] = numDate(v)
+        #    y,m,day = numDate2(v)
+        #    d[k+"_year"] = y
+        #    d[k+"_month"]=m
+        #    d[k+"_day"]=day
         else:
             d[k+"-"+v] = 1
     return d
+
+def numDate(str):
+    date = time.strptime(str, "%B %d, %Y")
+    monFrac = (date.tm_mon - 1) / 12.0
+    dayFrac = (date.tm_mday - 1) / 365.0
+    return date.tm_year + monFrac + dayFrac
+
+def numDate2(str):
+    date = time.strptime(str, "%B %d, %Y")
+    return date.tm_year, date.tm_mon, date.tm_mday
 
 def unigram_feats(md):
     """
