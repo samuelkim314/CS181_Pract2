@@ -229,6 +229,33 @@ def unigram_feats(md):
                           if util.non_numeric(token))
     return c
 
+def bigram_feats(md):
+    c = Counter()
+    for rev in util.MovieData.reviewers:
+        if hasattr(md,rev):
+            # count occurrences of asciified, lowercase, non-numeric unigrams
+            # after removing punctuation
+            wordList = util.punct_patt.sub("",
+                         util.asciify(md.__dict__[rev].strip().lower())).split()
+            wordList = [x for x in wordList if util.non_numeric(x)]
+            bigrams = zip(wordList, wordList[1:])
+            c.update(token for token in bigrams)
+    return c
+
+def bigram_feats_noStop(md):
+    c = Counter()
+    for rev in util.MovieData.reviewers:
+        if hasattr(md,rev):
+            # count occurrences of asciified, lowercase, non-numeric unigrams
+            # after removing punctuation
+            stopWords = util.getStopWords()
+            wordList = util.punct_patt.sub("",
+                         util.asciify(md.__dict__[rev].strip().lower())).split()
+            wordList = [x for x in wordList if util.non_numeric(x) and util.notStopWord(x, stopWords)]
+            bigrams = zip(wordList, wordList[1:])
+            c.update(token for token in bigrams)
+    return c
+
 def unigram_noStop(md):
     """
     arguments:
@@ -305,6 +332,8 @@ def mainTest(withhold=0, params=None):
     # TODO put the names of the feature functions you've defined above in this list
     #ffs = [metadata_feats, unigram_feats]
     ffs = [metadata_feats, unigram_noStop]
+    #ffs = [metadata_feats, bigram_feats_noStop]
+    #ffs = [metadata_feats, bigram_feats_noStop, unigram_noStop]
 
     print "extracting training/testing features..."
     time1 = time.clock()

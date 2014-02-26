@@ -12,11 +12,17 @@ withhold = 0
   None     : Load all data from original xml files
               if 'extractFile' provided, will save the extracted features
               if 'splitfile' provided, will also save the split data"""
-loadParams = {'load': None,
+"""loadParams = {'load': None,
           'extractFile': 'extracted2ffs',
           'splitFile': 'withhold100',
           'writePredict': True,
           'outputFile': 'predictNoStop.csv'
+          }"""
+loadParams = {'load': None,
+          'extractFile': 'extractedBigram',
+          'splitFile': None,
+          'writePredict': True,
+          'outputFile': 'predictBigram.csv'
           }
 
 regression_starter.mainTest(withhold, loadParams)
