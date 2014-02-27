@@ -201,15 +201,33 @@ def metadata_feats(md):
             continue
         if k in util.MovieData.implicit_list_atts or k in util.MovieData.reviewers:
             continue
+        if k == "target":
+            continue
         if isinstance(v, list):
             d.update([(k+"-"+val,1) for val in v])
         elif isinstance(v, float):
             d[k] = v
         elif isinstance(v, bool):
             d[k] = float(v)
+        #elif k == "release_date":
+        #    d[k] = numDate(v)
+        #    y,m,day = numDate2(v)
+        #    d[k+"_year"] = y
+        #    d[k+"_month"]=m
+        #    d[k+"_day"]=day
         else:
             d[k+"-"+v] = 1
     return d
+
+def numDate(str):
+    date = time.strptime(str, "%B %d, %Y")
+    monFrac = (date.tm_mon - 1) / 12.0
+    dayFrac = (date.tm_mday - 1) / 365.0
+    return date.tm_year + monFrac + dayFrac
+
+def numDate2(str):
+    date = time.strptime(str, "%B %d, %Y")
+    return date.tm_year, date.tm_mon, date.tm_mday
 
 def unigram_feats(md):
     """
@@ -230,13 +248,40 @@ def unigram_feats(md):
                           if util.non_numeric(token))
     return c
 
+def bigram_feats(md):
+    c = Counter()
+    for rev in util.MovieData.reviewers:
+        if hasattr(md,rev):
+            # count occurrences of asciified, lowercase, non-numeric unigrams
+            # after removing punctuation
+            wordList = util.punct_patt.sub("",
+                         util.asciify(md.__dict__[rev].strip().lower())).split()
+            wordList = [x for x in wordList if util.non_numeric(x)]
+            bigrams = zip(wordList, wordList[1:])
+            c.update(token for token in bigrams)
+    return c
+
+def bigram_feats_noStop(md):
+    c = Counter()
+    for rev in util.MovieData.reviewers:
+        if hasattr(md,rev):
+            # count occurrences of asciified, lowercase, non-numeric unigrams
+            # after removing punctuation
+            stopWords = util.getStopWords()
+            wordList = util.punct_patt.sub("",
+                         util.asciify(md.__dict__[rev].strip().lower())).split()
+            wordList = [x for x in wordList if util.non_numeric(x) and util.notStopWord(x, stopWords)]
+            bigrams = zip(wordList, wordList[1:])
+            c.update(token for token in bigrams)
+    return c
+
 def unigram_noStop(md):
     """
     arguments:
       md is a util.MovieData object
     returns:
       a dictionary containing a mapping from unigram features from the reviews
-      to their values on this util.MovieData object
+      to their values on this util.MovieData object, with stop words removed
     """
     unigramCount = unigram_feats(md)
     for sword in util.getStopWords():
@@ -306,6 +351,8 @@ def mainTest(withhold=0, params=None):
     # TODO put the names of the feature functions you've defined above in this list
     #ffs = [metadata_feats, unigram_feats]
     ffs = [metadata_feats, unigram_noStop]
+    #ffs = [metadata_feats, bigram_feats_noStop]
+    #ffs = [metadata_feats, bigram_feats_noStop, unigram_noStop]
 
     print "extracting training/testing features..."
     time1 = time.clock()
@@ -538,7 +585,7 @@ def mainTestIter(withhold=0, params=None):
         MAEs.append((cv_mae_mean, cv_mae_std)) 
 
         print "--------------------------------------------------------------------------------"
-    
+
     print "================================================================================"
 
     # tabulate results
@@ -672,8 +719,8 @@ if __name__ == "__main__":
     # })
 
     # ------------------------------------------------------------------------
-    
-    # Uncomment this to use Sam's code for cross-validation on a reasonable 
+
+    # Uncomment this to use Sam's code for cross-validation on a reasonable
     # subset of the data
     # mainTest(withhold=300,params={
     #   'withhold': 0,

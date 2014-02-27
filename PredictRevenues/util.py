@@ -108,6 +108,9 @@ def getStopWords():
         stop_words = set([line.strip() for line in f.readlines()])
     return stop_words
 
+def notStopWord(w, stopWords=getStopWords()):
+    return w not in getStopWords()
+
 # a regular expression for identifying punctuation in reviews
 punct_patt = re.compile('[\'\.,:\?;!"\(\)\[\]\$@%]')
 
