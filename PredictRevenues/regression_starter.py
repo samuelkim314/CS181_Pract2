@@ -229,6 +229,36 @@ def numDate2(str):
     date = time.strptime(str, "%B %d, %Y")
     return date.tm_year, date.tm_mon, date.tm_mday
 
+def totRevLen(md):
+    """
+    arguments:
+      md is a util.MovieData object
+    returns:
+      dictionary with word lengths of each reviewer
+    """
+    d={"totRevLen": 0}
+    for rev in util.MovieData.reviewers:
+        if hasattr(md,rev):
+            revLen = len(util.punct_patt.sub("",
+                         util.asciify(md.__dict__[rev].strip().lower())).split())
+            d["totRevLen"] += revLen
+    return d
+
+def revLens(md):
+    """
+    arguments:
+      md is a util.MovieData object
+    returns:
+      dictionary with word lengths of each reviewer
+    """
+    d={}
+    for rev in util.MovieData.reviewers:
+        if hasattr(md,rev):
+            revLen = len(util.punct_patt.sub("",
+                         util.asciify(md.__dict__[rev].strip().lower())).split())
+            d[rev+"_length"] = revLen
+    return d
+
 def unigram_feats(md):
     """
     arguments:
@@ -353,6 +383,8 @@ def mainTest(withhold=0, params=None):
     ffs = [metadata_feats, unigram_noStop]
     #ffs = [metadata_feats, bigram_feats_noStop]
     #ffs = [metadata_feats, bigram_feats_noStop, unigram_noStop]
+    #totRevLen, revLens
+    #ffs = [metadata_feats, unigram_noStop, totRevLen]
 
     print "extracting training/testing features..."
     time1 = time.clock()
@@ -391,7 +423,7 @@ def mainTest(withhold=0, params=None):
 
 
 # ----------------------------------------------------------------------------
-# 
+#
 
 def mainPredict(params):
     import learn
@@ -427,7 +459,7 @@ def mainPredict(params):
     # TODO put the names of the feature functions you've defined above in this list
     ffs = [metadata_feats, unigram_noStop]
 
-    print 
+    print
     print "extracting training/testing features..."
     time1 = time.clock()
     # X_train, y_train, train_ids, X_test, y_test, test_ids = test.loadData(params, withhold, ffs)
@@ -511,7 +543,7 @@ def mainTestIter(withhold=0, params=None):
     # TODO put the names of the feature functions you've defined above in this list
     ffs = [metadata_feats, unigram_noStop]
 
-    print 
+    print
     print "extracting training/testing features..."
     time1 = time.clock()
     # X_train, y_train, train_ids, X_test, y_test, test_ids = test.loadData(params, withhold, ffs)
@@ -576,13 +608,13 @@ def mainTestIter(withhold=0, params=None):
             print "MAE on withheld data: ", cv_mae[-1]
             print
 
-        
+
         cv_mae_mean, cv_mae_std = np.mean(cv_mae), np.std(cv_mae)
 
         print
         print "Avg. MAE: %f" % cv_mae_mean
         print "Std. MAE: %f" % cv_mae_std
-        MAEs.append((cv_mae_mean, cv_mae_std)) 
+        MAEs.append((cv_mae_mean, cv_mae_std))
 
         print "--------------------------------------------------------------------------------"
 
@@ -630,9 +662,9 @@ if __name__ == "__main__":
       # 'options': { 'mode': 'ridgeCV' },
       # 'n_folds': 10,
       # 'option': 'alphas',
-      # # 'range': [[0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [0.001, 0.01, 0.1, 1., 10., 100., 1.e3], [0.001, 0.01, 0.1, 1., 10.]] 
-      # # 'range': [[0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [1., 10., 100., 1.e3, 1.e4, 1.e5]] 
-      # # 'range': [[100., 1.e3, 1.e4, 1.e5, 1.e6]] 
+      # # 'range': [[0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [0.001, 0.01, 0.1, 1., 10., 100., 1.e3], [0.001, 0.01, 0.1, 1., 10.]]
+      # # 'range': [[0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [1., 10., 100., 1.e3, 1.e4, 1.e5]]
+      # # 'range': [[100., 1.e3, 1.e4, 1.e5, 1.e6]]
       # 'range': [[0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [0.001, 0.01, 0.1, 1., 10.]]
       # # 'range': [[1., 10., 100., 1.e3], [1., 10., 100., 1.e3, 1.e4], [1., 10., 100., 1.e3, 1.e4, 1.e5]]
 
@@ -648,7 +680,7 @@ if __name__ == "__main__":
       # 'option': 'mode',
       # 'range': ['lsmr']
       # # 'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV' ]
-      # # 'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ] 
+      # # 'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ]
       # # 'range': ['Perceptron', 'SGDRegressor' ]
 
       # # Try different modes with decomposition
@@ -659,9 +691,9 @@ if __name__ == "__main__":
       # 'option': 'mode',
       # 'range': ['lsmr', 'ridgeCV', 'LassoCV', 'ElasticNetCV']
       # # 'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV' ]
-      # # 'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ] 
+      # # 'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ]
       # # 'range': ['Perceptron', 'SGDRegressor' ]
-      
+
 
       # # Try different decompositions
       # 'options': {
@@ -670,7 +702,7 @@ if __name__ == "__main__":
       # },
       # 'option': 'reduction',
       # 'range': ['tsvd', 'nmf']
-      
+
       # # Try different decomposition options
       # 'options': {
       #   'mode':'lsmr',
@@ -679,11 +711,11 @@ if __name__ == "__main__":
       # 'option': 'n_components',
       # 'range': [1, 2, 3, 4, 5, 10, 25, 100, 250, 1000]
       # # 'range': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    
+
     })
-    
+
     # ------------------------------------------------------------------------
-    
+
     # # Uncomment this to make predictions with Casey's learning engine
     # mainPredict(params={
     #     'load': None,
@@ -691,7 +723,7 @@ if __name__ == "__main__":
     #     'outputFile': 'data/predictions.csv',
     #     'splitFile': None, # 'data/splitFile',
     #     'writePredict': True,
-    #     'options': { 
+    #     'options': {
     #         # 'mode': 'lsmr',
     #         'mode': 'ridgeCV',
     #         # 'mode': 'LassoCV',
@@ -710,7 +742,7 @@ if __name__ == "__main__":
     #     'outputFile': 'data/predictions.csv',
     #     'splitFile': None, # 'data/splitFile',
     #     'writePredict': True,
-    #     'options': { 
+    #     'options': {
     #         # 'mode': 'lsmr',
     #         'mode': 'ridgeCV',
     #         'normalize': True,

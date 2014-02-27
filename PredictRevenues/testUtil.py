@@ -22,39 +22,18 @@ def pickle(data, file):
     cPickle.dump(data,fo)
     fo.close()
 
-def splitData(fds, targets, ids, withhold=0):
+def splitData(fds, targets, ids, withhold=0, splitMethod=0):
     #Combine the 3 lists into 1 list to match the indices
     data = zip(fds, targets, ids)
     #Shuffles the data and divides them into training and testing data
-    random.shuffle(data)
-    trainData = data[:(len(data) - withhold)]
-    testData = data[(len(data) - withhold):]
-    #Divides the list into its components
-    fds, targets, ids = zip(*trainData)
-    fdsTest, targetsTest, idsTest = zip(*testData)
-
-    return fds, targets, ids, fdsTest, targetsTest, idsTest
-
-#Splits in a predictable way - withholding the last withhold of the data
-def splitData1(fds, targets, ids, withhold=0):
-    #Combine the 3 lists into 1 list to match the indices
-    data = zip(fds, targets, ids)
-
-    trainData = data[:(len(data) - withhold)]
-    testData = data[(len(data) - withhold):]
-    #Divides the list into its components
-    fds, targets, ids = zip(*trainData)
-    fdsTest, targetsTest, idsTest = zip(*testData)
-
-    return fds, targets, ids, fdsTest, targetsTest, idsTest
-
-#Splits in a predictable way - withholding the first withhold of the data
-def splitData2(fds, targets, ids, withhold=0):
-    #Combine the 3 lists into 1 list to match the indices
-    data = zip(fds, targets, ids)
-
-    trainData = data[withhold:]
-    testData = data[:withhold]
+    if splitMethod == 2:
+        trainData = data[withhold:]
+        testData = data[:withhold]
+    else:
+        if splitMethod == 0:
+            random.shuffle(data)
+        trainData = data[:(len(data) - withhold)]
+        testData = data[(len(data) - withhold):]
     #Divides the list into its components
     fds, targets, ids = zip(*trainData)
     fdsTest, targetsTest, idsTest = zip(*testData)
@@ -184,7 +163,7 @@ def loadData(params, withhold, ffs, trainfile="train.xml", testfile="testcases.x
             train_ids = []
         # withhold some of the training data into test data
         else:
-            fds, targets, train_ids, fdsTest, targetsTest, test_ids = splitData(fds, targets, train_ids, withhold)
+            fds, targets, train_ids, fdsTest, targetsTest, test_ids = splitData(fds, targets, train_ids, withhold, params['splitMethod'])
             X_train,feat_dict = regress.make_design_mat(fds)
             X_test,_ = regress.make_design_mat(fdsTest, feat_dict)
             y_train=np.array(targets)
