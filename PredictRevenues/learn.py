@@ -5,14 +5,14 @@ from scipy.sparse import linalg as splinalg
 import sklearn.linear_model as sklin
 import sklearn.decomposition
 
-def learn(X_train, y_train, mode='lsmr', reduction=None, n_components=10, alphas=[0.1, 1., 10.]):
+def learn(X_train, y_train, mode='lsmr', reduction=None, n_components=10, alphas=[0.1, 1., 10.], normalize=False):
     def ridge():
-        model = sklin.Ridge()
+        model = sklin.Ridge(normalize=normalize, alpha=alphas[0])
         model.fit(X_train, y_train)
         return (model.intercept_,model.coef_)
 
     def ridgeCV():
-        model = sklin.RidgeCV(alphas=np.array(alphas))
+        model = sklin.RidgeCV(normalize=normalize, alphas=np.array(alphas))
         model.fit(X_train, y_train)
         print "FYI alpha = %f" % model.alpha_
         return (model.intercept_,model.coef_)
@@ -36,8 +36,13 @@ def learn(X_train, y_train, mode='lsmr', reduction=None, n_components=10, alphas
         model.fit(X_train, y_train)
         return (model.intercept_,model.coef_)
 
+    def Lasso():
+        model = sklin.Lasso(alpha=alphas[0])
+        model.fit(X_train, y_train)
+        return (model.intercept_,model.coef_)
+
     def LassoCV():
-        model = sklin.LassoCV()
+        model = sklin.LassoCV(alpha=alphas[0])
         model.fit(X_train, y_train)
         return (model.intercept_,model.coef_)
 
@@ -101,6 +106,7 @@ def learn(X_train, y_train, mode='lsmr', reduction=None, n_components=10, alphas
         'lsqr': lambda: (0,splinalg.lsqr(X_train,y_train)[0]),
         'ridge': ridge,
         'ridgeCV': ridgeCV,
+        'lasso':Lasso,
         'ARDRegression':ARDRegression,
         'BayesianRidge':BayesianRidge,
         'ElasticNetCV':ElasticNetCV,
