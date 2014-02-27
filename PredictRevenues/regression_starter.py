@@ -362,7 +362,7 @@ def mainTest(withhold=0, params=None):
     print "learning..."
     time1 = time.clock()
     #learned_w = splinalg.lsqr(X_train,y_train)[0]
-    learned_w = splinalg.lsmr(X_train,y_train)[0]
+    learned_w = splinalg.lsmr(X_train,y_train,damp=5000)[0]
     time2 = time.clock()
     print "done learning, ", time2-time1, "s"
     print
