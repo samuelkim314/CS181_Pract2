@@ -196,6 +196,9 @@ def metadata_feats(md):
     """
     d = {}
     for k,v in md.__dict__.iteritems():
+        # don't use target value as a feature
+        if k == "target":
+            continue
         if k in util.MovieData.implicit_list_atts or k in util.MovieData.reviewers:
             continue
         if isinstance(v, list):
@@ -340,7 +343,10 @@ def mainTest(withhold=0, params=None):
         print "done!"
 
 
-def mainTestIter(withhold=0, params=None):
+# ----------------------------------------------------------------------------
+# 
+
+def mainPredict(params):
     import learn
 
     #default value for params
@@ -350,8 +356,8 @@ def mainTestIter(withhold=0, params=None):
     params = dict({'withhold': 0,
       'load': None,
       'extractFile': None,
-      'trainFile': None,
-      'testFile': None,
+      'trainFile': 'train.xml',
+      'testFile': 'testcases.xml',
       'writePredict': False,
       'outputFile': 'predictions.csv',
 
@@ -362,21 +368,113 @@ def mainTestIter(withhold=0, params=None):
       'option': None,
 
       # range of values to cycle through
-      'range': []
+      'range': [],
+
+      # k-fold cross-validation
+      'n_folds': 2
     }, **params)
 
     trainfile = "train.xml"
     testfile = "testcases.xml"
 
     # TODO put the names of the feature functions you've defined above in this list
-    ffs = [metadata_feats, unigram_feats]
+    ffs = [metadata_feats, unigram_noStop]
 
+    print 
     print "extracting training/testing features..."
     time1 = time.clock()
-    X_train, y_train, train_ids, X_test, y_test, test_ids = test.loadData(params, withhold, ffs)
+    # X_train, y_train, train_ids, X_test, y_test, test_ids = test.loadData(params, withhold, ffs)
+    X_train,global_feat_dict,y_train,train_ids = extract_feats(ffs, params['trainFile'])
     time2 = time.clock()
     print "done extracting training/testing features", time2-time1, "s"
     print
+
+    # options for the learning engine
+    options = params['options']
+    op = dict(options)
+    decomp = None
+
+    # train here, and return regression parameters
+    print "learning..."
+    time1 = time.clock()
+    if 'reduction' in op and op['reduction'] != None:
+        ((learned_w0, learned_w), decomp) = learn.learn(X_train, y_train, **op)
+    else:
+        (learned_w0, learned_w) = learn.learn(X_train, y_train, **op)
+
+    time2 = time.clock()
+    print "done learning, ", time2-time1, "s"
+    print
+
+
+    # load test features
+    print "extracting test features..."
+    X_test,_,y_ignore,test_ids = extract_feats(ffs, params['testFile'], global_feat_dict=global_feat_dict)
+    print "done extracting test features"
+    print
+
+    # make predictions
+    print "making predictions..."
+    if decomp is None:
+        preds = X_test.dot(learned_w) + learned_w0
+    else:
+        preds = decomp(X_test).dot(learned_w) + learned_w0
+    print "done making predictions"
+    print
+
+
+    print "writing predictions..."
+    util.write_predictions(preds, test_ids, params['outputFile'])
+    print "done!"
+
+
+
+def mainTestIter(withhold=0, params=None):
+    from sklearn import cross_validation
+    import learn
+
+    #default value for params
+    if params==None:
+        params = {}
+
+    params = dict({'withhold': 0,
+      'load': None,
+      'extractFile': None,
+      'trainFile': 'train.xml',
+      'testFile': 'testcases.xml',
+      'writePredict': False,
+      'outputFile': 'predictions.csv',
+
+      # arguments to `learn`
+      'options': {},
+
+      # the option to cycle through
+      'option': None,
+
+      # range of values to cycle through
+      'range': [],
+
+      # k-fold cross-validation
+      'n_folds': 10
+    }, **params)
+
+    trainfile = "train.xml"
+    testfile = "testcases.xml"
+
+    # TODO put the names of the feature functions you've defined above in this list
+    ffs = [metadata_feats, unigram_noStop]
+
+    print 
+    print "extracting training/testing features..."
+    time1 = time.clock()
+    # X_train, y_train, train_ids, X_test, y_test, test_ids = test.loadData(params, withhold, ffs)
+    X, y, ids, _, _, _ = test.loadData(params, withhold, ffs)
+    time2 = time.clock()
+    print "done extracting training/testing features", time2-time1, "s"
+    print "%d data, %d features" % X.shape
+    print
+
+
 
     # options for the learning engine
     options = params['options']
@@ -394,33 +492,50 @@ def mainTestIter(withhold=0, params=None):
         op[params['option']] = value
         decomp = None
 
-        # train here, and return regression parameters
-        print "learning..."
-        time1 = time.clock()
-        if 'reduction' in op and op['reduction'] != None:
-            ((learned_w0, learned_w), decomp) = learn.learn(X_train, y_train, **op)
-        else:
-            (learned_w0, learned_w) = learn.learn(X_train, y_train, **op)
+        # generate k cross-validation folds
+        kf = cross_validation.KFold(len(y),n_folds=params['n_folds'],shuffle=True)
+        print "k-fold cross-validation with %d folds" % params['n_folds']
+        cv_mae = []
 
-        time2 = time.clock()
-        print "done learning, ", time2-time1, "s"
+        # for each cv fold
+        for train,tests in kf:
+
+            # generate partition
+            X_train, y_train, X_test, y_test = X[train], y[train], X[tests], y[tests]
+
+            # train here, and return regression parameters
+            print "learning..."
+            time1 = time.clock()
+            if 'reduction' in op and op['reduction'] != None:
+                ((learned_w0, learned_w), decomp) = learn.learn(X_train, y_train, **op)
+            else:
+                (learned_w0, learned_w) = learn.learn(X_train, y_train, **op)
+
+            time2 = time.clock()
+            print "done learning, ", time2-time1, "s"
+            print
+
+
+            # make predictions
+            print "making predictions..."
+            if decomp is None:
+                preds = X_test.dot(learned_w) + learned_w0
+            else:
+                preds = decomp(X_test).dot(learned_w) + learned_w0
+            print "done making predictions"
+
+            # cross-validate
+            cv_mae.append(testMAE(preds, y_test))
+            print "MAE on withheld data: ", cv_mae[-1]
+            print
+
+        
+        cv_mae_mean, cv_mae_std = np.mean(cv_mae), np.std(cv_mae)
+
         print
-
-
-        # make predictions on text data and write them out
-        print "making predictions..."
-        if decomp is None:
-            preds = X_test.dot(learned_w) + learned_w0
-        else:
-            preds = decomp(X_test).dot(learned_w) + learned_w0
-        print "done making predictions"
-        print
-
-        # cross-validate
-        if withhold > 0:
-            mae = testMAE(preds, y_test)
-            print "MAE on withheld data: ", mae
-            MAEs.append(mae) 
+        print "Avg. MAE: %f" % cv_mae_mean
+        print "Std. MAE: %f" % cv_mae_std
+        MAEs.append((cv_mae_mean, cv_mae_std)) 
 
         print "--------------------------------------------------------------------------------"
     
@@ -428,40 +543,134 @@ def mainTestIter(withhold=0, params=None):
 
     # tabulate results
     results = dict()
+    print "Options:"
+    print options
+    print
+
     print "Results:"
-    print "%s \t MAE" % params['option']
+    print "%18s \t MAE \t std" % params['option']
     for (i, value) in enumerate(params['range']):
-        print "%s \t %d" % (value, MAEs[i])
+        print "%18s \t %d \t %d" % (value, MAEs[i][0], MAEs[i][1])
+        if(isinstance(value, list)):
+            value = tuple(value)
+
         results[value] = MAEs[i]
 
     return results
 
+def mainExamine(params=None):
+    import matplotlib.pyplot as plt
+    ffs = [metadata_feats, unigram_noStop]
+
+    X, y, ids, _, _, _ = test.loadData(params, 0, ffs)
+    plt.hist(y,bins=20)
+    plt.show()
+
+
+
 if __name__ == "__main__":
 
     # Uncomment this to try different learning methods
-    # mainTestIter(withhold=100,params={
-    #   'load': 'extract',
-    #   'extractFile': 'data/extracted2ffs',
-    #   'outputFile': 'data/predictions.csv',
-    #   'splitFile': 'data/splitFile',
-    #   'writePredict': True,
+    mainTestIter(withhold=0,params={
+      'load': 'extract',
+      # 'load': None,
+      'extractFile': 'data/extracted2ffs',
+      'outputFile': 'data/predictions.csv',
+      'splitFile': None, # 'data/splitFile',
+      'writePredict': True,
 
-    #   # Try different modes
-    #   'options': { },
-    #   'option': 'mode',
-    #   'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ] 
-    #   # 'range': ['Perceptron', 'SGDRegressor' ]
+      # # Try different alphas
+      # 'options': { 'mode': 'ridgeCV' },
+      # 'n_folds': 10,
+      # 'option': 'alphas',
+      # # 'range': [[0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [0.001, 0.01, 0.1, 1., 10., 100., 1.e3], [0.001, 0.01, 0.1, 1., 10.]] 
+      # # 'range': [[0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [1., 10., 100., 1.e3, 1.e4, 1.e5]] 
+      # # 'range': [[100., 1.e3, 1.e4, 1.e5, 1.e6]] 
+      # 'range': [[0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5], [0.001, 0.01, 0.1, 1., 10.]]
+      # # 'range': [[1., 10., 100., 1.e3], [1., 10., 100., 1.e3, 1.e4], [1., 10., 100., 1.e3, 1.e4, 1.e5]]
+
+
+      # Try different alphas
+      # 'options': { 'mode': 'lasso', 'normalize': True, 'reduction': 'tsvd', 'n_components':25 },
+      'options': { 'mode': 'lasso', 'normalize': True },
+      'option': 'alphas',
+      'range': [[0],[0.001],[0.01],[0.1],[1.],[10.],[100.],[1.e3],[1.e4],[1.e5],[1.e6],[1.e7]],
+
+      # # Try different modes
+      # 'options': { 'alphas': [0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5] },
+      # 'option': 'mode',
+      # 'range': ['lsmr']
+      # # 'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV' ]
+      # # 'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ] 
+      # # 'range': ['Perceptron', 'SGDRegressor' ]
+
+      # # Try different modes with decomposition
+      # 'options': { 'alphas': [0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5],
+      #   'reduction': 'tsvd',
+      #   'n_components': 25
+      # },
+      # 'option': 'mode',
+      # 'range': ['lsmr', 'ridgeCV', 'LassoCV', 'ElasticNetCV']
+      # # 'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV' ]
+      # # 'range': ['lsmr', 'lsqr', 'LinearRegression', 'ridge', 'ridgeCV', 'ElasticNetCV', 'LassoCV' ] 
+      # # 'range': ['Perceptron', 'SGDRegressor' ]
       
 
-    #   # # Try different decompositions
-    #   # 'options': {
-    #   #   'mode':'LarsCV',
-    #   #   'n_components': 2
-    #   # },
-    #   # 'option': 'reduction',
-    #   # 'range': ['tsvd', 'nmf']
-    # })
+      # # Try different decompositions
+      # 'options': {
+      #   'mode':'LarsCV',
+      #   'n_components': 2
+      # },
+      # 'option': 'reduction',
+      # 'range': ['tsvd', 'nmf']
+      
+      # # Try different decomposition options
+      # 'options': {
+      #   'mode':'lsmr',
+      #   'reduction': 'tsvd'
+      # },
+      # 'option': 'n_components',
+      # 'range': [1, 2, 3, 4, 5, 10, 25, 100, 250, 1000]
+      # # 'range': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     
+    })
+    
+    # ------------------------------------------------------------------------
+    
+    # # Uncomment this to make predictions with Casey's learning engine
+    # mainPredict(params={
+    #     'load': None,
+    #     'extractFile': 'data/extracted2ffs',
+    #     'outputFile': 'data/predictions.csv',
+    #     'splitFile': None, # 'data/splitFile',
+    #     'writePredict': True,
+    #     'options': { 
+    #         # 'mode': 'lsmr',
+    #         'mode': 'ridgeCV',
+    #         # 'mode': 'LassoCV',
+    #         # 'normalize': True,
+    #         # 'alphas': [0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5]
+    #         'alphas': [0.01, 0.1, 1., 10.]
+    #     },
+    # })
+
+    # ------------------------------------------------------------------------
+
+    # # Uncomment this to do visualization
+    # mainExamine(params={
+    #     'load': None,
+    #     'extractFile': 'data/extracted2ffs',
+    #     'outputFile': 'data/predictions.csv',
+    #     'splitFile': None, # 'data/splitFile',
+    #     'writePredict': True,
+    #     'options': { 
+    #         # 'mode': 'lsmr',
+    #         'mode': 'ridgeCV',
+    #         'normalize': True,
+    #         'alphas': [0.001, 0.01, 0.1, 1., 10., 100., 1.e3, 1.e4, 1.e5]
+    #     },
+    # })
+
     # ------------------------------------------------------------------------
     
     # Uncomment this to use Sam's code for cross-validation on a reasonable 
@@ -475,4 +684,4 @@ if __name__ == "__main__":
     #   'writePredict': True
     #   })
 
-    mainTest()
+    # mainTest()
