@@ -384,7 +384,7 @@ def mainTest(withhold=0, params=None):
     #ffs = [metadata_feats, bigram_feats_noStop]
     #ffs = [metadata_feats, bigram_feats_noStop, unigram_noStop]
     #totRevLen, revLens
-    #ffs = [metadata_feats, unigram_noStop, totRevLen]
+    #ffs = [metadata_feats, unigram_noStop, revLens]
 
     print "extracting training/testing features..."
     time1 = time.clock()

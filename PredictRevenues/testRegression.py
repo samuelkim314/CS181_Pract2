@@ -25,11 +25,11 @@ withhold = 100
           'splitMethod': 1
           }"""
 loadParams = {'load': None,
-          'extractFile': 'extractedTotRevLen',
+          'extractFile': None,
           'splitFile': None,
           'writePredict': False,
           'outputFile': 'predictBigram.csv',
-          'splitMethod': 1
+          'splitMethod': 2
           }
 
 regression_starter.mainTest(withhold, loadParams)
