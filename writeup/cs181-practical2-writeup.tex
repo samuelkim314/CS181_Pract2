@@ -1,6 +1,6 @@
 \documentclass[11pt]{amsart}
 \usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
-\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ...
 %\geometry{landscape}                % Activate for for rotated page geometry
 %\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
 \usepackage{graphicx}
@@ -8,6 +8,7 @@
 \usepackage{epstopdf}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{commath}
 \DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 
 % Declare commands
@@ -26,12 +27,33 @@
 
 \subsection{LSMR and LSQR}
 
+Both the LSQR and LSMR algorithms solve the linear system $Ax=b$, or $\text{min}\norm{b-Ax}_2$ if the system is inconsistent, for sparse matrices $A$ \cite{LSMR}. For regularization, these algorithms solve $\text{min}\norm{b-Ax}^2+\lambda^2\norm{x}^2$ where $\lambda$ is the damping parameter. In our example, $A$ is the feature matrix, $x$ is the weights, and $b$ is the vector of predicted revenues. Given $A$ and $b$ from the feature extraction modules on the training data, we want to solve for $x$ so that we can predict the revenues on test data after extracting the feature matrix from the test data.
+
+Assuming that we are solving for the non-regularized least squares (the results are easily generalized to regularized least squares), LSQR uses conjugate-gradient to the equation $(A^TA+\lambda^2I)x=A^Tb$, which has the property of reducing $\norm{b-Ax_k}$ monotonically. LSMR, on the other hand, uses MINRES to the equation $(A^TA+\lambda^2I)x=A^Tb$, which has the property of reducing both $\norm{b-Ax_k}$ and $\norm{A^T(b-Ax_k)}$ monotonically. Because of these properties, although both LSQR and LSMR converge to similar points, LSMR converges more quickly and can reach a more accurate answer. This suggests that it may be possible to reach a similar result using LSQR but with tighter termination tolerances.
+
+The LSMR algorithm using default parameters ($\lambda=0$) shows an improvement in MAE of $7.7\times10^5$ on the Kaggle data.
+
 \subsection{Ridge and Lasso}
 
 \section{Feature engineering}
 
 \subsection{Metadata features}
 
-\subsection{Unigram features}
+\subsection{Review text features}
+The unigram feature function as provided vectorizes the review data by making a variable for each unique word and counting all occurences of that word. Naturally, there are many of words, known as stop words, that are not indicative of content in the reviews, and thus only serve to introduce noise that may cause overfitting, and increase processing time. Removing these stop words from the feature matrix improves the MAE by approximately 5000 on the Kaggle data.
+
+A disadvantage of unigram features is that unigrams do not provide any insight into the structure of the reviews and where the words are in respect to each other - this information is lost. A possible solution is to extract $n$-grams, in which strings of $n$ consecutive words are used as the features. Bigrams features were implemented, both including and excluding stop words, and tests on both bigrams alone and combining bigram and unigram features showed no improvement over using unigrams alone. At first sight, this might suggest that word extraction from reviews offer little information, but only extracting metadata and ignoring the reviews results in an MAE increase of approximately $3\times10^6$ on the Kaggle data. This suggests that bigrams and unigrams extract similar information from the reviews, and that bigrams do not sufficiently extract structural data from the review.
+
+Further work would look into extracting more insightful information from the reviews, such as through a topic model.
+
+\begingroup
+\begin{thebibliography}{9}
+
+\bibitem{LSMR}
+Fong, David Chin-Lung, and Michael Saunders. "LSMR: An iterative algorithm for sparse least-squares problems."
+\emph{SIAM Journal on Scientific Computing} 33.5 (2011): 2950-2971
+
+\end{thebibliography}
+\endgroup
 
 \end{document}
