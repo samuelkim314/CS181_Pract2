@@ -48,11 +48,11 @@ We plot the predictive mean as $\Phi(x) \mathbf{w}$ with predictive variance of 
 We again use the design matrix $\Phi$ to compute the linear regression. We begin with a prior distribution covariance matrix of $\mathbf{S_0} = \alpha ^{-1} \mathbb{I}$. For our Bayesian linear regression, we chose an $\alpha = 1$. The mean and variance of the posterior distribution after $N$ data points is given by
 
 \begin{align*}
-\mathbf{m}_N &= \beta \mathbf{S_N} \Phi ^ T \mathbf{t} \\
+\mathbf{m}_N &= \beta \mathbf{S}_N \Phi ^ T \mathbf{t} \\
 \mathbf{S}_N^{-1} &= \alpha \mathbb{I} + \beta \Phi ^ T \Phi \\
 \end{align*}
 
-The $\mathbf{m}_N$ matrix gives the $\mathbf{w}$ weight matrix and the predictive mean is given by $\Phi(x) \mathbf{w}$. The predictive variance is given by $\mathbf{\sigma}_N(x) = 1 / \beta + \Phi \mathbf{S}_N \Phi ^ T$. \\
+The $\mathbf{m}_N$ matrix gives the $\mathbf{w}$ weight matrix and the predictive mean is given by $\Phi(x) \mathbf{w}$. The predictive variance is given by $\mathbf{\sigma}^2_N(x) = 1 / \beta + \Phi^T(x) \mathbf{S}_N \Phi(x)$. \\
 
 \section{Regression algorithms}
 
