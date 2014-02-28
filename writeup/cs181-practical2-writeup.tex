@@ -35,7 +35,11 @@ Assuming that we are solving for the non-regularized least squares (the results 
 The LSMR algorithm using default parameters ($\lambda=0$) shows a significant improvement in MAE of $7.7\times10^5$ on the Kaggle data.
 
 \subsection{Regularization for LSMR}
-Because of the large number of features, especially those extracted from the reviews (see below sections on feature extraction), we must be careful about overfitting to the limited data. Regularization can alleviate this problem, and the LSMR algorithm performs algorithm by solving $\text{min}\norm{b-Ax}^2+\lambda^2\norm{x}^2$ where $\lambda$ is the damping parameter. Cross-validation on the same subset of the training data revealed the optimal damping parameter to be around $\lambda=15000$, which decreased the MAE by approximately $17000$. Further increasing $\lambda$ causes the MAE to shoot up significantly, consistent with the bias-variance decomposition analysis presented by Bishop in Figure 3.6.
+Because of the large number of features, especially those extracted from the reviews (see below sections on feature extraction), we must be careful about overfitting to the limited data. Regularization can alleviate this problem, and the LSMR algorithm performs algorithm by solving $\text{min}\norm{b-Ax}^2+\lambda^2\norm{x}^2$ where $\lambda$ is the damping parameter. Cross-validation on the same subset of the training data revealed the optimal damping parameter to be around $\lambda=15000$, which decreased the MAE by approximately $17000$. Further increasing $\lambda$ causes the MAE to shoot up significantly, consistent with the bias-variance decomposition analysis presented by Bishop in Figure 3.6. The below figure shows a plot of the MAE on the subset of training data as a function of $\log{\lambda}$.
+
+\begin{center}
+\includegraphics[width=10cm]{LSMR-Regularization.jpg}
+\end{center}
 
 \subsection{Basis functions}
 Solving $Ax=b$ for $x$, the weights, places the restriction that the revenues, $b$ depend only linearly on all of the features, and does not account for possible non-linear dependencies. We thus implemented a polynomial basis for each feature ($\phi_j(x)=x^j$). In this scheme, if $A$ is originally a $n\times m$ matrix, then it is extended to an $n \times mB$ matrix, where $B$ is the number of basis functions used, and where $A_{i,(jm+k)}=(A_{i,k})^j$ for $j\in\{1,...,B\}$ and $k\in\{1,...,m\}$. Additionally, we extend $A$ to $n\times (mB+1)$ to add a column for $w_0$, the bias parameter.
