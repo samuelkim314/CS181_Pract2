@@ -32,7 +32,12 @@ Both the LSQR and LSMR algorithms solve the linear system $Ax=b$, or $\text{min}
 
 Assuming that we are solving for the non-regularized least squares (the results are easily generalized to regularized least squares), LSQR uses conjugate-gradient to the equation $(A^TA+\lambda^2I)x=A^Tb$, which has the property of reducing $\norm{b-Ax_k}$ monotonically. LSMR, on the other hand, uses MINRES to the equation $(A^TA+\lambda^2I)x=A^Tb$, which has the property of reducing both $\norm{b-Ax_k}$ and $\norm{A^T(b-Ax_k)}$ monotonically. Because of these properties, although both LSQR and LSMR converge to similar points, LSMR converges more quickly and can reach a more accurate answer. This suggests that it may be possible to reach a similar result using LSQR but with tighter termination tolerances.
 
-The LSMR algorithm using default parameters ($\lambda=0$) shows an improvement in MAE of $7.7\times10^5$ on the Kaggle data.
+The LSMR algorithm using default parameters ($\lambda=0$) shows a significant improvement in MAE of $7.7\times10^5$ on the Kaggle data.
+
+\subsection{Basis functions}
+Solving $Ax=b$ for $x$, the weights, places the restriction that the revenues, $b$ depend only linearly on all of the features, and does not account for possible non-linear dependencies. We thus implemented a polynomial basis for each feature ($\phi_j(x)=x^j$). In this scheme, if $A$ is originally a $n\times m$ matrix, then it is extended to an $n \times mB$ matrix, where $B$ is the number of basis functions used, and where $A_{i,(jm+k)}=(A_{i,k})^j$ for $j\in\{1,...,B\}$ and $k\in\{1,...,m\}$. Additionally, we extend $A$ to $n\times (mB+1)$ to add a column for $w_0$, the bias parameter.
+
+However, implementing the polynomial basis functions resulted in increasingly worse results for higher $B$, tested for up to $B=6$.
 
 \subsection{SVD and Lasso}
 
