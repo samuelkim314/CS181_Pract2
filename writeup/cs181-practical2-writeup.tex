@@ -33,7 +33,12 @@ We implemented basis function linear regression on the set of motorcycle data, w
 	\caption{(Left) $M = 8$ basis Fourier series functions and (Right) $M = 16$ basis Fourier series functions. Both graphs show predictive regions around the mean. Maximum likelihood estimation is represented in blue and Bayesian linear regression is represented in green. Original data points are plotted with the predictive mean.}
 \end{figure}
 
-The linear regression methods were initially computed using polynomial basis functions of the form $x^n$. These basis functions did not perform well over $M = 10$ where it began to overfit the data. We then explored sinusoidal basis functions in a Fourier series and produced the results above. For both methods, we used fthe precision factor $\beta = 0.5$. \\
+\subsection{Basis functions}
+The linear regression methods were initially computed using polynomial basis functions of the form $x^n$. These basis functions did not perform well over $M = 10$ where it began to overfit the data. We then explored sinusoidal basis functions in a Fourier series and produced the results above. The resulting fitting function can be described as
+ $$a_0+\sum_{i=1}^Ia_n\cos(\frac{2\pi ix}{P})+\sum_{j=1}^Ja_n\sin(\frac{2\pi jx}{P})$$
+where the total number of terms, $1+i+j=M$, and $P$ is the period, which is the range of the data. For both methods, we used the precision factor $\beta = 0.5$. 
+
+We suspect that the sinusoidal basis functions fit better because the y-value of the data is approximately the same at the beginning and end. Additionally, physically an impact can be modelled by many vibrations going through the helmet, where these waves are sinusoidal curves.\\
 
 \subsection{Maximum likelihood estimation}
 
