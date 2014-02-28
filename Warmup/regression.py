@@ -36,7 +36,7 @@ def basisFourier(x, M, T=0):
 def errorFun(x, t, w, basis):
     return 0.5*np.sum((t - np.dot(w, basis(x)))**2)
 
-def maximum_likelihood(x, t, basis, M):
+def maximum_likelihood(x, t, basis, M, beta = 0.5):
     """Solves exactly for w, the weights. Not recommended for large data sets.
     Arguments:
         x:     array of inputs
@@ -51,9 +51,9 @@ def maximum_likelihood(x, t, basis, M):
     #calculates the Moore-Penrose pseudo-inverse of the matrix phi
     phiTphi = np.dot(np.transpose(phiMat), phiMat)
     MPMat = np.dot(np.linalg.inv(phiTphi), np.transpose(phiMat))
-    return np.dot(MPMat, t)
+    return np.dot(MPMat, t), [1/beta for x in range(len(x))]
 
-def bayesian_linear_regression(x, t, basis, M, alpha = 1, beta = 1):
+def bayesian_linear_regression(x, t, basis, M, alpha = 1, beta = 0.5):
     """Solves exactly for w, the weights. Not recommended for large data sets.
     Arguments:
         x:     array of inputs
@@ -71,4 +71,4 @@ def bayesian_linear_regression(x, t, basis, M, alpha = 1, beta = 1):
     S_N = np.linalg.inv(alpha*np.identity(M) + beta*np.dot(np.transpose(Phi), Phi))
     m_N = beta*S_N.dot(np.transpose(Phi)).dot(t)
 
-    return m_N
+    return m_N, 1/beta + Phi[0].dot(S_N).dot(np.transpose(Phi))
