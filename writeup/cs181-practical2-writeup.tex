@@ -24,6 +24,36 @@
 
 \section{Warmup}
 
+We implemented basis function linear regression on the set of motorcycle data, which consists of 94 data points on the g-force on the helment and the time elasped since impact. We used maximum likelihood estimation and Bayesian linear regression. The plots for $M = 8, 16$ basis functions using Fourier series with predictive region is shown below. 
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=7cm]{warmup_fourier_8}
+	\includegraphics[width=7cm]{warmup_fourier_16}\\
+	\caption{(Left) $M = 8$ basis Fourier series functions and (Right) $M = 16$ basis Fourier series functions. Both graphs show predictive regions around the mean. Maximum likelihood estimation is represented in blue and Bayesian linear regression is represented in green. Original data points are plotted with the predictive mean.}
+\end{figure}
+
+The linear regression methods were initially computed using polynomial basis functions of the form $x^n$. These basis functions did not perform well over $M = 10$ where it began to overfit the data. We then explored sinusoidal basis functions in a Fourier series and produced the results above. For both methods, we used fthe precision factor $\beta = 0.5$. \\
+
+\subsection{Maximum likelihood estimation}
+
+We use the design matrix $\Phi$ to compute the Moore-Penrose pseudoinverse matrix $(\Phi ^ T \Phi)^{-1} \Phi ^T$. We return the weight matrix 
+
+$$\mathbf{w} = (\Phi ^ T \Phi)^{-1} \Phi ^T \mathbf{t}$$
+
+We plot the predictive mean as $\Phi(x) \mathbf{w}$ with predictive variance of $1 / \beta$.
+
+\subsection{Bayesian linear regression}
+
+We again use the design matrix $\Phi$ to compute the linear regression. We begin with a prior distribution covariance matrix of $\mathbf{S_0} = \alpha ^{-1} \mathbb{I}$. For our Bayesian linear regression, we chose an $\alpha = 1$. The mean and variance of the posterior distribution after $N$ data points is given by
+
+\begin{align*}
+\mathbf{m}_N &= \beta \mathbf{S_N} \Phi ^ T \mathbf{t} \\
+\mathbf{S}_N^{-1} &= \alpha \mathbb{I} + \beta \Phi ^ T \Phi \\
+\end{align*}
+
+The $\mathbf{m}_N$ matrix gives the $\mathbf{w}$ weight matrix and the predictive mean is given by $\Phi(x) \mathbf{w}$. The predictive variance is given by $\mathbf{\sigma}_N(x) = 1 / \beta + \Phi \mathbf{S}_N \Phi ^ T$. \\
+
 \section{Regression algorithms}
 
 \subsection{LSMR and LSQR}
