@@ -102,6 +102,12 @@ Additionally, we tried combining both Lasso and Ridge regression with a TSVD; ho
 \section{Feature engineering}
 
 \subsection{Metadata features}
+We implemented several feature extraction functions for the meta-data, including:
+\begin{itemize}
+	\item Numericizing the release date both by having a feature for each of the year, month, and date (eg. February 28, 2010 would be \{'year': 2010, 'month': 2, 'day': 28\}), and converting the date into an absolute time (eg. February 28, 2010 would be $\{\text{'date'}: 2010 + (2-1)/12 + (28-1)/365\}$).
+	\item Word counts of reviews, both separating the feature by reviewer and totalling the word count of all reviews.
+\end{itemize}
+Unfortunately, neither of these methods worked to improve the MAE in cross-validation tests.
 
 \subsection{Review text features}
 The unigram feature function as provided vectorizes the review data by making a variable for each unique word and counting all occurrences of that word. Naturally, there are many of words, known as stop words, that are not indicative of content in the reviews, and thus only serve to introduce noise that may cause overfitting, and increase processing time. Removing these stop words from the feature matrix improves the MAE by approximately 5000 on the Kaggle data.
