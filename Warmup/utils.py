@@ -27,7 +27,7 @@ def importTestData(n=5):
 
     return {"time": np.array(time), "force": np.array(force)}
 
-def plotRegression(x, t, w, basis):
+def plotRegression(x, t, w, basis, pred, color):
     #setting up axis limits
     #TODO: allow input axis limits
     rangeX = np.amax(x) - np.amin(x)
@@ -38,14 +38,15 @@ def plotRegression(x, t, w, basis):
     maxT = np.amax(t) + rangeY / 10.0
 
     #plot the data
+    plt.figure()
     plt.plot(x, t, 'ro')
     plt.axis([minX, maxX, minT, maxT])
 
     #plot the predicted curve
-    sampX = np.linspace(minX, maxX, 50)
+    #sampX = np.linspace(minX, maxX, 50)
     #phiMat = basis(sampX, len(w))
-    phiMat = basis(sampX, len(w), rangeX)
-    sampT = np.dot(phiMat, w)
-    plt.plot(sampX, np.dot(phiMat, w))
-
-    plt.show()
+    #phiMat = basis(sampX, len(w), rangeX)
+    phiMat = basis(x, len(w))
+    #sampT = np.dot(phiMat, w)
+    plt.plot(x, np.dot(phiMat, w))
+    #plt.fill_between(x, np.dot(phiMat, w) + [10 * x for x in pred], np.dot(phiMat, w) - [10 * x for x in pred], facecolor = color, alpha = 0.25)
